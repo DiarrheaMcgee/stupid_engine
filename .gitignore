@@ -6,5 +6,4 @@
 /.clangd
 /doc/html
 /doc/latex
-/assets/obj/*
-/assets/shaders/*
+*.spv
