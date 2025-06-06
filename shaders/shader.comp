@@ -1,0 +1,88 @@
+#version 450
+
+#extension GL_EXT_buffer_reference : require
+#extension GL_EXT_scalar_block_layout : enable
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+mat4 eulerX(float angle)
+{
+	const float sin = sin(angle);
+	const float cos = cos(angle);
+	return mat4(1.0, 0.0, 0.0, 0.0,
+	            0.0, cos, sin, 0.0,
+	            0.0, -sin, cos, 0.0,
+	            0.0, 0.0, 0.0, 1.0);
+}
+
+mat4 eulerY(float angle)
+{
+	const float sin = sin(angle);
+	const float cos = cos(angle);
+	return mat4(cos, 0.0, -sin, 0.0,
+	            0.0, 1.0, 0.0, 0.0,
+	            sin, 0.0, cos, 0.0,
+	            0.0, 0.0, 0.0, 1.0);
+}
+
+mat4 eulerZ(float angle)
+{
+	const float sin = sin(angle);
+	const float cos = cos(angle);
+	return mat4(cos, sin, 0.0, 0.0,
+	            -sin, cos, 0.0, 0.0,
+	            0.0, 0.0, 1.0, 0.0,
+	            0.0, 0.0, 0.0, 1.0);
+}
+
+struct Transformation {
+	float translation[3];
+	float rotation_x;
+	float rotation_y;
+	float rotation_z;
+	float scale[3];
+};
+
+layout(buffer_reference, scalar, std430) readonly buffer Transformations {
+	Transformation data[];
+};
+
+layout(buffer_reference, scalar, std430) writeonly buffer MatrixBuffer {
+	layout(row_major) mat4 data[];
+};
+
+layout(push_constant, scalar) uniform PushConstants {
+	MatrixBuffer models;
+	Transformations transformations;
+	uint model_count;
+	uint pad;
+} pc;
+
+void main(void)
+{
+	uint id = gl_GlobalInvocationID.x;
+	if (id >= pc.model_count) return;
+
+	Transformation t = pc.transformations.data[id];
+
+	mat4 translation = mat4(1.0, 0.0, 0.0, 0.0,
+	                        0.0, 1.0, 0.0, 0.0,
+	                        0.0, 0.0, 1.0, 0.0,
+	                        t.translation[0], t.translation[1], t.translation[2], 1.0);
+
+	mat4 rotation = eulerZ(t.rotation_z) * eulerY(t.rotation_y) * eulerX(t.rotation_x);
+
+	mat4 scale = mat4(t.scale[0], 0.0,        0.0,        0.0,
+	                  0.0,        t.scale[1], 0.0,        0.0,
+	                  0.0,        0.0,        t.scale[2], 0.0,
+	                  0.0,        0.0,        0.0,        1.0);
+
+	mat4 inverse_scale = mat4(1.0 / max(t.scale[0], 0.00001), 0.0, 0.0, 0.0,
+	                          0.0, 1.0 / max(t.scale[0], 0.00001), 0.0, 0.0,
+	                          0.0, 0.0, 1.0 / max(t.scale[0], 0.00001), 0.0,
+	                          0.0, 0.0, 0.0, 1.0);
+
+    pc.models.data[id * 2] = translation * rotation * scale;
+    pc.models.data[id * 2 + 1] = transpose(inverse(rotation * scale));
+}
+

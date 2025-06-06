@@ -1,0 +1,8 @@
+/compile_commands.json
+/out/
+/.idea/
+/.cache/
+/doc/html
+/doc/latex
+/assets/obj/*
+/assets/shaders/*

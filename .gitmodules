@@ -1,0 +1,6 @@
+[submodule "dependencies/fast_obj"]
+	path = dependencies/fast_obj
+	url = https://github.com/thisistherk/fast_obj.git
+[submodule "dependencies/RGFW"]
+	path = dependencies/RGFW
+	url = https://github.com/DiarrheaMcgee/RGFW.git
