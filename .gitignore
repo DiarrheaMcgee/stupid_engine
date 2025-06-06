@@ -2,6 +2,8 @@
 /out/
 /.idea/
 /.cache/
+/.clang-format
+/.clangd
 /doc/html
 /doc/latex
 /assets/obj/*

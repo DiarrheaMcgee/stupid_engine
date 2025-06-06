@@ -4,8 +4,8 @@ CC ?= cc
 NASMFLAGS = -felf64 -gdwarf
 LIBS = -lvulkan -lXrandr -lX11
 SUFFIXES += .d
-INCLUDE = -I./dependencies/fast_obj -I./dependencies/stb -I./dependencies/RGFW -I./stupid
-DEFAULT_CFLAGS = -MMD -D_POSIX_C_SOURCE=200809L -fPIC -ggdb3 -O3 -ansi -std=c11 -Wall -Werror -mavx -mavx2 -msse -msse2 -msse4.1 -mtune=znver3
+INCLUDE = -I./dependencies/fast_obj -I./dependencies/RGFW -I./stupid
+DEFAULT_CFLAGS = -MMD -D_POSIX_C_SOURCE=200809L -fPIC -ggdb3 -O3 -ansi -std=c11 -Wall -Werror -mavx -mavx2 -msse -msse2 -msse4.1
 VPATH = stupid/core:stupid/memory:stupid/renderer/vulkan:stupid/renderer:test
 CSRC = \
 	stupid/core/engine.c\
@@ -26,7 +26,6 @@ CSRC = \
 	stupid/renderer/vulkan/vulkan_frontend.c\
 	stupid/renderer/vulkan/vulkan_pipeline.c\
 	stupid/renderer/render.c
-	#xdg/*.c
 
 ASMSRC = \
 	stupid/memory/memcpy.asm\
