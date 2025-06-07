@@ -218,7 +218,7 @@ bool stWindowPoll(StWindow *pWindow)
 
 	RGFW_event *event = NULL;
 	bool resized = false;
-	
+
 	// iterate through all available events
 	while ((event = RGFW_window_checkEvent(pWindow->handle)) != NULL) {
 		switch (event->type) {

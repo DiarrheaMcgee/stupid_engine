@@ -335,7 +335,6 @@ static STUPID_INLINE bool stEngineIsRunning(const StEngine *pEngine)
 	STUPID_NC(pEngine);
 	STUPID_NC(pEngine->pState);
 	stMutexLock(&pEngine->pState->lock);
-	//const bool res = (pEngine->pState->is_running && pEngine->pState->main_loop_is_running);
 	const bool res = pEngine->pState->is_running;
 	stMutexUnlock(&pEngine->pState->lock);
 	return res;

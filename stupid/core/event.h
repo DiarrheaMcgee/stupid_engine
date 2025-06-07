@@ -130,6 +130,7 @@ typedef enum st_event_code {
 /**
  * Callback used when a registered event is signaled.
  * @param code Event code.
+ * @param sender Pointer associated with the source of the event.
  * @param listener Pointer passed to pfn each call.
  * @param data Arguments.
  * @see stEventFire, stEventRegister

@@ -107,11 +107,12 @@ static void signalHandler(const int sig)
 }
 
 /**
- * handles events for the engine
- * @param code the event code
- * @param listener the event listener (usually doesnt matter)
- * @param data the data being sent in the event
- * @return true if successful
+ * Handles most important events.
+ * @param code Type of event.
+ * @param sender The thing that sent this event (used to make sure something like a window resize doesnt happen to all windows).
+ * @param listener The event listener (basically used to avoid static global variables).
+ * @param data The data being sent in the event.
+ * @return True if successful.
  */
 static bool eventHandler(const st_event_code code, void *sender, void *listener, const StEventData data)
 {
@@ -234,7 +235,7 @@ st_engine_init_return_code stEngineInit(StEngine *pEngine)
 
 	if (pEngine->pState) {
 		if (stEngineIsInitialized(pEngine)) {
-			STUPID_LOG_ERROR("engineInit() called twice");
+			STUPID_LOG_ERROR("stEngineInit() called twice");
 			return STUPID_ENGINE_INIT_CALLED_TWICE;
 		}
 	}
@@ -338,6 +339,7 @@ st_engine_init_return_code stEngineInit(StEngine *pEngine)
 			                       pEngine->config.window.height,
 			                       pEngine->config.name,
 			                       pEngine->config.window.flags);
+
 	if (pEngineState->pWindow == NULL) {
 		STUPID_LOG_FATAL("failed to create window");
 		shutdownAll(pEngine);

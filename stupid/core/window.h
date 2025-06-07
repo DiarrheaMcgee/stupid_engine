@@ -8,19 +8,19 @@
 //#include "input.h"
 
 /// Maximum width allowed for a window (arbitrary).
-/// @see StWindow, StWindowOptions
+/// @see StWindow
 #define STUPID_WINDOW_MAX_WIDTH  8192u
 
 /// Maximum height allowed for a window (arbitrary).
-/// @see StWindow, StWindowOptions
+/// @see StWindow
 #define STUPID_WINDOW_MAX_HEIGHT 8192u
 
 /// Minimum width allowed for a window (arbitrary).
-/// @see StWindow, StWindowOptions
+/// @see StWindow
 #define STUPID_WINDOW_MIN_WIDTH  64u
 
 /// Minimum height allowed for a window (arbitrary).
-/// @see StWindow, StWindowOptions
+/// @see StWindow
 #define STUPID_WINDOW_MIN_HEIGHT 64u
 
 /// Disables resizing.
@@ -110,7 +110,7 @@ typedef enum st_mouse_button_id {
 
 /**
  * A graphical window which uses RGFW as a backend.
- * @see stWindowCreate, stWindowDestroy, StWindowOptions, Renderer
+ * @see stWindowCreate, stWindowDestroy, Renderer
  */
 typedef struct StWindow {
         /// Internal window handle.
@@ -187,24 +187,22 @@ typedef struct StWindow {
  * Creates a window with the specified options.
  * @param width Initial width of the window.
  * @param height Initial height of the window.
- * @param options Options for the window.
  * @param name Name of the window.
+ * @param flags Window flag bitfield.
  * @return A new window which must be destroyed with stWindowDestroy().
- * @see stWindowDestroy, StWindow, StWindowOptions
+ * @see stWindowDestroy, StWindow
  */
-//StWindow *(stWindowCreate)(const i32 width, const i32 height, StWindowOptions options, const char *name STUPID_DBG_PROTO_PARAMS);
 StWindow *(stWindowCreate)(const i32 width, const i32 height, const char *name, const u32 flags STUPID_DBG_PROTO_PARAMS);
 
 /**
  * Creates a window with the specified options.
  * @param width Initial width of the window.
  * @param height Initial height of the window.
- * @param options Options for the window.
  * @param name Name of the window.
+ * @param flags Window flag bitfield.
  * @return True if successful.
- * @see stWindowDestroy, StWindow, StWindowOptions
+ * @see stWindowDestroy, StWindow
  */
-//#define stWindowCreate(width, height, options, name) (stWindowCreate)(width, height, options, name STUPID_DBG_PARAMS)
 #define stWindowCreate(width, height, name, flags) (stWindowCreate)(width, height, name, flags STUPID_DBG_PARAMS)
 
 /**
@@ -277,12 +275,6 @@ StWindow *stWindowCreateInvisible(void);
  * @see stWindowDestroyVulkanSurface, StVulkanSurface
  */
 bool stWindowCreateVulkanSurface(StWindow *pWindow, void *instance, void *pSurface);
-
-/**
- * Destroys a VulkanSurface.
- * @param pSurface Pointer to a VulkanSurface.
- */
-//void stWindowDestroyVulkanSurface(void *pSurface);
 
 /**
  * Gets the current size of a window.
