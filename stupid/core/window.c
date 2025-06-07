@@ -188,7 +188,7 @@ void stWindowResize(StWindow *pWindow, const i32 width, const i32 height)
 	data.window.w = *pWindow->width;
 	data.window.h = *pWindow->height;
 
-	stEventFire(STUPID_EVENT_CODE_WINDOW_RESIZED, data);
+	stEventFire(STUPID_EVENT_CODE_WINDOW_RESIZED, pWindow, data);
 }
 
 void stWindowSetFullscreen(StWindow *pWindow, const bool state)
@@ -238,13 +238,13 @@ bool stWindowPoll(StWindow *pWindow)
 			if (pWindow->captured) {
 				data.mouse.x = event->vector.x;
 				data.mouse.y = event->vector.y;
-				stEventFire(STUPID_EVENT_CODE_MOUSE_MOVED, data);
+				stEventFire(STUPID_EVENT_CODE_MOUSE_MOVED, pWindow, data);
 				stWindowCenterCursor(pWindow);
 			}
 			else {
 				data.mouse.x = event->point.x;
 				data.mouse.y = event->point.x;
-				stEventFire(STUPID_EVENT_CODE_MOUSE_MOVED, data);
+				stEventFire(STUPID_EVENT_CODE_MOUSE_MOVED, pWindow, data);
 			}
 			break;
 		}
@@ -252,28 +252,28 @@ bool stWindowPoll(StWindow *pWindow)
 		case RGFW_keyPressed: {
 			StEventData data = {0};
 			data.key = RGFW_TO_STUPID[event->key];
-			stEventFire(STUPID_EVENT_CODE_KEY_PRESSED, data);
+			stEventFire(STUPID_EVENT_CODE_KEY_PRESSED, pWindow, data);
 			break;
 		}
 
 		case RGFW_keyReleased: {
 			StEventData data = {0};
 			data.key = RGFW_TO_STUPID[event->key];
-			stEventFire(STUPID_EVENT_CODE_KEY_RELEASED, data);
+			stEventFire(STUPID_EVENT_CODE_KEY_RELEASED, pWindow, data);
 			break;
 		}
 
 		case RGFW_mouseButtonPressed: {
 			StEventData data = {0};
 			data.mouse.button = event->button;
-			stEventFire(STUPID_EVENT_CODE_BUTTON_PRESSED, data);
+			stEventFire(STUPID_EVENT_CODE_BUTTON_PRESSED, pWindow, data);
 			break;
 		}
 
 		case RGFW_mouseButtonReleased: {
 			StEventData data = {0};
 			data.mouse.button = event->button;
-			stEventFire(STUPID_EVENT_CODE_BUTTON_RELEASED, data);
+			stEventFire(STUPID_EVENT_CODE_BUTTON_RELEASED, pWindow, data);
 			break;
 		}
 
@@ -281,7 +281,7 @@ bool stWindowPoll(StWindow *pWindow)
 			StEventData data = {0};
 			data.window.w = *pWindow->width;
 			data.window.h = *pWindow->height;
-			stEventFire(STUPID_EVENT_CODE_WINDOW_MOVED, data);
+			stEventFire(STUPID_EVENT_CODE_WINDOW_MOVED, pWindow, data);
 			break;
 		}
 
@@ -303,7 +303,7 @@ bool stWindowPoll(StWindow *pWindow)
 	if (resized) {
 		StEventData data = {0};
 		stWindowGetSize(pWindow, &data.window.w, &data.window.h);
-		stEventFire(STUPID_EVENT_CODE_WINDOW_RESIZED, data);
+		stEventFire(STUPID_EVENT_CODE_WINDOW_RESIZED, pWindow, data);
 		pWindow->resizing = false;
 	}
 

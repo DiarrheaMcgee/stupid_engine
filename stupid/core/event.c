@@ -4,12 +4,12 @@
 
 #include "memory/memory.h"
 
-typedef struct Event {
+typedef struct StEvent {
 	StPFN_event pfn;
 	const void *listener;
-} Event;
+} StEvent;
 
-static Event *events[ST_MAX_STUPID_EVENT_CODES] = {0};
+static StEvent *events[ST_MAX_STUPID_EVENT_CODES] = {0};
 
 void (stEventRegister)(const st_event_code code, const void *listener, const StPFN_event pfn STUPID_DBG_PROTO_PARAMS)
 {
@@ -17,9 +17,9 @@ void (stEventRegister)(const st_event_code code, const void *listener, const StP
 	STUPID_NC(pfn);
 
 	if (events[code] == NULL)
-		events[code] = stMemAlloc(Event, ST_MAX_EVENTS_PER_CODE);
+		events[code] = stMemAlloc(StEvent, ST_MAX_EVENTS_PER_CODE);
 
-	Event e = {.pfn = pfn, .listener = listener};
+	StEvent e = {.pfn = pfn, .listener = listener};
 	stMemAppend(events[code], e);
 
 	STUPID_LOG_TRACEFN("registered event: code %d listener %p", code, listener);
@@ -68,14 +68,14 @@ void stEventDealloc(void)
 	}
 }
 
-void stEventFire(const st_event_code code, const StEventData data)
+void stEventFire(const st_event_code code, void *sender, const StEventData data)
 {
 	STUPID_ASSERT(code < ST_MAX_STUPID_EVENT_CODES, "event code out of bounds");
 
 	if (events[code] == NULL) return;
 	for (int i = 0; i < stMemLength(events[code]); i++) {
 		STUPID_NC(events[code][i].pfn);
-		events[code][i].pfn(code, (void *)events[code][i].listener, data);
+		events[code][i].pfn(code, sender, (void *)events[code][i].listener, data);
 	}
 }
 

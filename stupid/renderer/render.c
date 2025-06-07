@@ -27,9 +27,18 @@ static STUPID_INLINE StRendererValues *getRvals(const StRenderer *pRenderer)
 	return &((StRendererVulkanContext *)pRenderer->pRendererInstance)->rvals;
 }
 
-static bool handleResize(const st_event_code code, void *listener, const StEventData data)
+static bool handleResize(const st_event_code code, void *sender, void *listener, const StEventData data)
 {
+	STUPID_NC(listener);
 	StRenderer *pRenderer = listener;
+
+	switch (pRenderer->type) {
+		default: {
+			StRendererVulkanContext *pContext = pRenderer->pRendererInstance;
+			if (pContext->pWindow != sender) return false;
+			break;
+		}
+	}
 
 	u32 timeout = 0;
 

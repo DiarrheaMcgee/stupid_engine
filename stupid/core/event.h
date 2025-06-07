@@ -134,7 +134,7 @@ typedef enum st_event_code {
  * @param data Arguments.
  * @see stEventFire, stEventRegister
  */
-typedef bool (*StPFN_event)(const st_event_code code, void *listener, const StEventData data);
+typedef bool (*StPFN_event)(const st_event_code code, void *sender, void *listener, const StEventData data);
 
 /**
  * Registers a function to be called with listener passed as an argument, every time the specified event code is fired.
@@ -195,14 +195,7 @@ void stEventUnregisterListener(const st_event_code code, const void *listener);
  * @param code Event code.
  * @param data Argument to pass to each function.
  */
-void stEventFire(const st_event_code code, const StEventData data);
-
-/**
- * Queues an event to be fired at the end of the current frame.
- * @param code Event code.
- * @param data Argument to pass to each function.
- */
-void stEventFireLazy(const st_event_code code, const StEventData data);
+void stEventFire(const st_event_code code, void *sender, const StEventData data);
 
 /**
  * Deallocates all registered events.

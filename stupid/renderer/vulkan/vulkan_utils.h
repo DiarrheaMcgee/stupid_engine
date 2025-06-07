@@ -63,6 +63,8 @@ static inline bool stRendererVulkanResultIsSuccess(const VkResult result)
                 case VK_ERROR_UNKNOWN:
                 default:
                         return false;
+
+		break;
         }
 }
 
@@ -75,7 +77,7 @@ static inline bool stRendererVulkanResultIsSuccess(const VkResult result)
                 VkResult result = (expr);\
                 if (!stRendererVulkanResultIsSuccess(result)) {\
                         STUPID_LOG_FATAL("%s: '%s' %s:%d", #expr, stRendererVulkanResultStr(result, STUPID_DBG_IF_ELSE(true, false)), __FILE__, __LINE__);\
-                        stEventFire(STUPID_EVENT_CODE_FATAL_ERROR, (StEventData){0});\
+                        stEventFire(STUPID_EVENT_CODE_FATAL_ERROR, NULL, (StEventData){0});\
                         STUPID_STOP();\
                 }\
         } while (0)

@@ -58,22 +58,22 @@ static void signalHandler(const int sig)
 	switch (sig) {
 	case SIGINT:
 		STUPID_LOG_INFO("received SIGINT");
-		stEventFire(STUPID_EVENT_CODE_EXIT, (StEventData){0});
+		stEventFire(STUPID_EVENT_CODE_EXIT, NULL, (StEventData){0});
 		break;
 
 	case SIGABRT:
 		STUPID_LOG_INFO("received SIGABRT");
-		stEventFire(STUPID_EVENT_CODE_EXIT, (StEventData){0});
+		stEventFire(STUPID_EVENT_CODE_EXIT, NULL, (StEventData){0});
 		break;
 
 	case SIGTERM:
 		STUPID_LOG_INFO("received SIGTERM");
-		stEventFire(STUPID_EVENT_CODE_EXIT, (StEventData){0});
+		stEventFire(STUPID_EVENT_CODE_EXIT, NULL, (StEventData){0});
 		break;
 
 	case SIGHUP:
 		STUPID_LOG_INFO("received SIGHUP");
-		stEventFire(STUPID_EVENT_CODE_EXIT, (StEventData){0});
+		stEventFire(STUPID_EVENT_CODE_EXIT, NULL, (StEventData){0});
 		break;
 
 	// in case you want to catch SIGILL for some reason
@@ -87,20 +87,20 @@ static void signalHandler(const int sig)
 	case SIGFPE:
 		STUPID_LOG_CRITICAL("received SIGFPE");
 		STUPID_LOG_CRITICAL("the engine divided by 0 or something (you should probably compile the engine with -O3 -ffast-math)");
-		stEventFire(STUPID_EVENT_CODE_FATAL_ERROR, (StEventData){0});
+		stEventFire(STUPID_EVENT_CODE_FATAL_ERROR, NULL, (StEventData){0});
 		exit(1);
 		break;
 
 	case SIGSEGV:
 		STUPID_LOG_CRITICAL("received SIGSEGV");
 		STUPID_LOG_CRITICAL("it would seem that the code in this engine is horrible and needs to be fixed");
-		stEventFire(STUPID_EVENT_CODE_FATAL_ERROR, (StEventData){0});
+		stEventFire(STUPID_EVENT_CODE_FATAL_ERROR, NULL, (StEventData){0});
 		exit(1);
 		break;
 
 	default:
 		STUPID_LOG_CRITICAL("received unknown signal %d", sig);
-		stEventFire(STUPID_EVENT_CODE_FATAL_ERROR, (StEventData){0});
+		stEventFire(STUPID_EVENT_CODE_FATAL_ERROR, NULL, (StEventData){0});
 		exit(1);
 		break;
 	}
@@ -113,7 +113,7 @@ static void signalHandler(const int sig)
  * @param data the data being sent in the event
  * @return true if successful
  */
-static bool eventHandler(const st_event_code code, void *listener, const StEventData data)
+static bool eventHandler(const st_event_code code, void *sender, void *listener, const StEventData data)
 {
 	STUPID_NC(listener);
 
@@ -154,21 +154,25 @@ static bool eventHandler(const st_event_code code, void *listener, const StEvent
 		break;
 
 	case STUPID_EVENT_CODE_KEY_RELEASED:
+		if (sender != pEngine->pState->pWindow) return false;
 		if (!pEngine->pState->is_suspended)
 			pEngine->callbackKey(pEngine, data.key, false);
 		break;
 
 	case STUPID_EVENT_CODE_BUTTON_PRESSED:
+		if (sender != pEngine->pState->pWindow) return false;
 		if (!pEngine->pState->is_suspended)
 			pEngine->callbackMouseButton(pEngine, data.mouse.button, true);
 		break;
 
 	case STUPID_EVENT_CODE_MOUSE_MOVED:
+		if (sender != pEngine->pState->pWindow) return false;
 		if (!pEngine->pState->is_suspended)
 			pEngine->callbackMouseMove(pEngine, data.mouse.x, data.mouse.y);
 		break;
 
 	case STUPID_EVENT_CODE_BUTTON_RELEASED:
+		if (sender != pEngine->pState->pWindow) return false;
 		if (!pEngine->pState->is_suspended)
 			pEngine->callbackMouseButton(pEngine, data.mouse.button, false);
 		break;
@@ -400,9 +404,9 @@ bool stEngineBeginFrame(StEngine *pEngine)
 	if (!stRendererPrepareFrame(pEngine->pState->pRenderer, packet.delta)) return false;
 	StEventData data = {0};
 	data.delta = delta;
-	stEventFire(STUPID_EVENT_CODE_FRAME_PREPARE, data);
+	stEventFire(STUPID_EVENT_CODE_FRAME_PREPARE, pEngine, data);
 	if (!stRendererStartFrame(pEngine->pState->pRenderer, packet.delta)) return false;
-	stEventFire(STUPID_EVENT_CODE_FRAME_START, data);
+	stEventFire(STUPID_EVENT_CODE_FRAME_START, pEngine, data);
 
 	return true;
 }
