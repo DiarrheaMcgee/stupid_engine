@@ -1,13 +1,15 @@
-#include <core/clock.h>
-#include <core/thread.h>
-#include <math/constants.h>
-#include <renderer/render_types.h>
-#include <core/engine.h>
-#include <core/logger.h>
-#include <core/window.h>
-#include <math/sin.h>
-#include <renderer/render.h>
-#include <memory/memory.h>
+#include <stupid/clock.h>
+#include <stupid/thread.h>
+#include <stupid/engine.h>
+#include <stupid/logger.h>
+#include <stupid/window.h>
+#include <stupid/memory.h>
+
+#include <stupid/math/sin.h>
+#include <stupid/math/constants.h>
+
+#include <stupid/renderer/render_types.h>
+#include <stupid/render.h>
 
 static StObject cube = {0};
 static StObject monkey = {0};
@@ -211,7 +213,7 @@ int main(void)
 		StObject objects[] = {monkey, cube, sponza};
 		stRendererDrawObjects(pEngine->pState->pRenderer, 3, objects);
 
-		STUPID_ASSERT(stEngineFinishFrame(pEngine), "failed to finish frame");
+		STUPID_ASSERT(stEngineEndFrame(pEngine), "failed to finish frame");
 	}
 
 	stRendererUnloadObject(pEngine->pState->pRenderer, &cube);

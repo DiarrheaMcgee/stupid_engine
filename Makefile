@@ -4,57 +4,57 @@ CC ?= cc
 NASMFLAGS = -felf64 -gdwarf
 LIBS = -lvulkan -lXrandr -lX11
 SUFFIXES += .d
-INCLUDE = -I./dependencies/fast_obj -I./dependencies/RGFW -I./stupid
+INCLUDE = -I./dependencies/fast_obj -I./dependencies/RGFW -I./include
 DEFAULT_CFLAGS = -MMD -D_POSIX_C_SOURCE=200809L -fPIC -ggdb3 -O3 -ansi -std=c11 -Wall -Werror -mavx -mavx2 -msse -msse2 -msse4.1
-VPATH = stupid/core:stupid/memory:stupid/renderer/vulkan:stupid/renderer:test
+VPATH = src:src/asm:src/renderer:src/renderer/vulkan:test
 CSRC = \
-	stupid/core/engine.c\
-	stupid/core/logger.c\
-	stupid/core/asserts.c\
-	stupid/core/window.c\
-	stupid/core/event.c\
-	stupid/core/thread.c\
-	stupid/memory/memory.c\
-	stupid/renderer/vulkan/vulkan_backend.c\
-	stupid/renderer/vulkan/vulkan_device.c\
-	stupid/renderer/vulkan/vulkan_swapchain.c\
-	stupid/renderer/vulkan/vulkan_image.c\
-	stupid/renderer/vulkan/vulkan_command_buffer.c\
-	stupid/renderer/vulkan/vulkan_fence.c\
-	stupid/renderer/vulkan/vulkan_utils.c\
-	stupid/renderer/vulkan/vulkan_memory.c\
-	stupid/renderer/vulkan/vulkan_frontend.c\
-	stupid/renderer/vulkan/vulkan_pipeline.c\
-	stupid/renderer/render.c
+	src/core/engine.c\
+	src/core/logger.c\
+	src/core/asserts.c\
+	src/core/window.c\
+	src/core/event.c\
+	src/core/thread.c\
+	src/memory/memory.c\
+	src/renderer/vulkan/vulkan_backend.c\
+	src/renderer/vulkan/vulkan_device.c\
+	src/renderer/vulkan/vulkan_swapchain.c\
+	src/renderer/vulkan/vulkan_image.c\
+	src/renderer/vulkan/vulkan_command_buffer.c\
+	src/renderer/vulkan/vulkan_fence.c\
+	src/renderer/vulkan/vulkan_utils.c\
+	src/renderer/vulkan/vulkan_memory.c\
+	src/renderer/vulkan/vulkan_frontend.c\
+	src/renderer/vulkan/vulkan_pipeline.c\
+	src/renderer/renderer.c
 
 ASMSRC = \
-	stupid/memory/memcpy.asm\
-	stupid/memory/memset.asm\
-	stupid/memory/memeq.asm
+	src/asm/memcpy.asm\
+	src/asm/memset.asm\
+	src/asm/memeq.asm
 
 BUILDDIR=out
 
-$(BUILDDIR)/engine.o: stupid/core/engine.c
-$(BUILDDIR)/logger.o: stupid/core/logger.c
-$(BUILDDIR)/asserts.o: stupid/core/asserts.c
-$(BUILDDIR)/window.o: stupid/core/window.c
-$(BUILDDIR)/event.o: stupid/core/event.c
-$(BUILDDIR)/thread.o: stupid/core/thread.c
-$(BUILDDIR)/memory.o: stupid/memory/memory.c
-$(BUILDDIR)/vulkan_backend.o: stupid/renderer/vulkan/vulkan_backend.c
-$(BUILDDIR)/vulkan_device.o: stupid/renderer/vulkan/vulkan_device.c
-$(BUILDDIR)/vulkan_swapchain.o: stupid/renderer/vulkan/vulkan_swapchain.c
-$(BUILDDIR)/vulkan_image.o: stupid/renderer/vulkan/vulkan_image.c
-$(BUILDDIR)/vulkan_command_buffer.o: stupid/renderer/vulkan/vulkan_command_buffer.c
-$(BUILDDIR)/vulkan_fence.o: stupid/renderer/vulkan/vulkan_fence.c
-$(BUILDDIR)/vulkan_utils.o: stupid/renderer/vulkan/vulkan_utils.c
-$(BUILDDIR)/vulkan_memory.o: stupid/renderer/vulkan/vulkan_memory.c
-$(BUILDDIR)/vulkan_frontend.o: stupid/renderer/vulkan/vulkan_frontend.c
-$(BUILDDIR)/vulkan_pipeline.o: stupid/renderer/vulkan/vulkan_pipeline.c
-$(BUILDDIR)/render.o: stupid/renderer/render.c
-$(BUILDDIR)/memcpy.o: stupid/memory/memcpy.asm
-$(BUILDDIR)/memset.o: stupid/memory/memset.asm
-$(BUILDDIR)/memeq.o: stupid/memory/memeq.asm
+$(BUILDDIR)/engine.o: src/engine.c
+$(BUILDDIR)/logger.o: src/logger.c
+$(BUILDDIR)/asserts.o: src/asserts.c
+$(BUILDDIR)/window.o: src/window.c
+$(BUILDDIR)/event.o: src/event.c
+$(BUILDDIR)/thread.o: src/thread.c
+$(BUILDDIR)/memory.o: src/memory.c
+$(BUILDDIR)/vulkan_backend.o: src/renderer/vulkan/vulkan_backend.c
+$(BUILDDIR)/vulkan_device.o: src/renderer/vulkan/vulkan_device.c
+$(BUILDDIR)/vulkan_swapchain.o: src/renderer/vulkan/vulkan_swapchain.c
+$(BUILDDIR)/vulkan_image.o: src/renderer/vulkan/vulkan_image.c
+$(BUILDDIR)/vulkan_command_buffer.o: src/renderer/vulkan/vulkan_command_buffer.c
+$(BUILDDIR)/vulkan_fence.o: src/renderer/vulkan/vulkan_fence.c
+$(BUILDDIR)/vulkan_utils.o: src/renderer/vulkan/vulkan_utils.c
+$(BUILDDIR)/vulkan_memory.o: src/renderer/vulkan/vulkan_memory.c
+$(BUILDDIR)/vulkan_frontend.o: src/renderer/vulkan/vulkan_frontend.c
+$(BUILDDIR)/vulkan_pipeline.o: src/renderer/vulkan/vulkan_pipeline.c
+$(BUILDDIR)/renderer.o: src/renderer/renderer.c
+$(BUILDDIR)/memcpy.o: src/asm/memcpy.asm
+$(BUILDDIR)/memset.o: src/asm/memset.asm
+$(BUILDDIR)/memeq.o: src/asm/memeq.asm
 
 COBJ = $(addprefix $(BUILDDIR)/,$(notdir $(CSRC:.c=.o)))
 ASMOBJ = $(addprefix $(BUILDDIR)/,$(notdir $(ASMSRC:.asm=.o)))
