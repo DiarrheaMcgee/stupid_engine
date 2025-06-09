@@ -1,6 +1,5 @@
 #include "stupid/renderer/vulkan/vulkan_memory.h"
 #include "stupid/renderer/vulkan/vulkan_command_buffer.h"
-#include "stupid/renderer/vulkan/vulkan_utils.h"
 
 #include "stupid/memory.h"
 
@@ -126,6 +125,6 @@ void stRendererVulkanMemoryCopyBuffer(StRendererVulkanContext *pContext, const u
 	StRendererVulkanCommandBuffer cmd = {0};
 	stRendererVulkanCommandBufferBeginTemporary(pContext, pContext->pBackend->device.graphics_command_pool, &cmd);
 	vkCmdCopyBuffer(cmd.handle, pSrcBuffer->handle, pDestBuffer->handle, 1, &copy);
-	stRendererVulkanCommandBufferEndTemporary(pContext, pContext->pBackend->device.graphics_command_pool, &cmd, pContext->pBackend->device.graphics_queue);
+	stRendererVulkanCommandBufferEndTemporary(pContext, pContext->pBackend->device.graphics_command_pool, pContext->pBackend->device.graphics_queue, &cmd);
 }
 

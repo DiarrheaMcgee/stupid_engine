@@ -223,6 +223,7 @@ void (stMemAppend)(void **array, const void *data);
  * Appends an element to the end of an array, and increments the length.
  * @param array An array created with stMemAlloc().
  * @param item A value of the same type as the array.
+ * @todo Fix clangd warning from static assertion.
  */
 #define stMemAppend(array, item)\
         do {\

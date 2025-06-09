@@ -11,7 +11,7 @@
 
 #ifdef _DEBUG
 /**
- * StRendererVulkan validation error printer.
+ * Vulkan validation error printer.
  * @param message_severity Message severity (error, warning, info, verbose).
  * @param message_types Unused.
  * @param pCallbackContext Struct containing the message.
@@ -171,9 +171,9 @@ StRendererVulkanBackend *stRendererVulkanBackendInit(void)
 	VkLayerProperties *pAvailableLayers = stMemAlloc(VkLayerProperties, available_layer_count);
 	VK_CHECK(vkEnumerateInstanceLayerProperties(&available_layer_count, pAvailableLayers));
 
-	// list the required Vulkan layers if they exist
+	// list the required vulkan layers if they exist
 	if (stMemLength(pBackend->required_layers) > 0) {
-		STUPID_LOG_DEBUG("required Vulkan layers:");
+		STUPID_LOG_DEBUG("required vulkan layers:");
 		for (int i = 0; i < stMemLength(pBackend->required_layers); i++)
 			STUPID_LOG_DEBUG("        %s", pBackend->required_layers[i]);
 	}
@@ -205,9 +205,9 @@ StRendererVulkanBackend *stRendererVulkanBackendInit(void)
 	VK_CHECK(vkEnumerateInstanceExtensionProperties(NULL, &available_extension_count, pAvailableExtensions));
 	stMemSetLength(pAvailableExtensions, available_extension_count);
 
-	// list the required Vulkan extensions if they exist
+	// list the required vulkan extensions if they exist
 	if (stMemLength(pBackend->required_extensions) > 0) {
-		STUPID_LOG_DEBUG("required Vulkan extensions:");
+		STUPID_LOG_DEBUG("required vulkan extensions:");
 		for (int i = 0; i < stMemLength(pBackend->required_extensions); i++)
 			STUPID_LOG_DEBUG("        %s", pBackend->required_extensions[i]);
 	}
@@ -232,14 +232,14 @@ StRendererVulkanBackend *stRendererVulkanBackendInit(void)
 	}
 	stMemDealloc(pAvailableExtensions);
 
-	// list the required Vulkan device extensions if they exist
+	// list the required vulkan device extensions if they exist
 	if (stMemLength(pBackend->required_layers) > 0) {
-		STUPID_LOG_DEBUG("required Vulkan device extensions:");
+		STUPID_LOG_DEBUG("required vulkan device extensions:");
 		for (int i = 0; i < stMemLength(pBackend->required_device_extensions); i++)
 			STUPID_LOG_DEBUG("        %s", pBackend->required_device_extensions[i]);
 	}
 
-	// instance of the Vulkan api
+	// instance of the vulkan api
 	VkInstanceCreateInfo instance    = {0};
 	instance.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	instance.flags                   = 0;
@@ -297,7 +297,7 @@ bool stRendererVulkanBackendShutdown(StRendererVulkanBackend *pBackend)
 
 	vkDeviceWaitIdle(pBackend->device.logical_device);
 
-	stRendererVulkanDeviceDestroy(&pBackend->device, pBackend->pAllocator);
+	stRendererVulkanDeviceDestroy(pBackend->pAllocator, &pBackend->device);
 
 #ifdef _DEBUG
 	const PFN_vkDestroyDebugUtilsMessengerEXT PFNMessenger = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(pBackend->instance, "vkDestroyDebugUtilsMessengerEXT");

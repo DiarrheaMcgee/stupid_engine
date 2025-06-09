@@ -64,7 +64,7 @@ const char *stRendererVulkanResultStr(const VkResult result, const bool verbose)
 		return !verbose ? "VK_ERROR_FEATURE_NOT_PRESENT" : "VK_ERROR_FEATURE_NOT_PRESENT a requested feature is not supported";
 	case VK_ERROR_INCOMPATIBLE_DRIVER:
 		return !verbose ? "VK_ERROR_INCOMPATIBLE_DRIVER"
-		                  : "VK_ERROR_INCOMPATIBLE_DRIVER The requested version of StRendererVulkan is not supported by the driver or is "
+		                  : "VK_ERROR_INCOMPATIBLE_DRIVER The requested version of vulkan is not supported by the driver or is "
 		                    "otherwise incompatible for implementation-specific reasons";
 	case VK_ERROR_TOO_MANY_OBJECTS:
 		return !verbose ? "VK_ERROR_TOO_MANY_OBJECTS"
@@ -82,7 +82,7 @@ const char *stRendererVulkanResultStr(const VkResult result, const bool verbose)
 		return !verbose ? "VK_ERROR_SURFACE_LOST_KHR" : "VK_ERROR_SURFACE_LOST_KHR a surface is no longer available";
 	case VK_ERROR_NATIVE_WINDOW_IN_USE_KHR:
 		return !verbose ? "VK_ERROR_NATIVE_WINDOW_IN_USE_KHR"
-		                  : "VK_ERROR_NATIVE_WINDOW_IN_USE_KHR The requested window is already in use by StRendererVulkan or another API in "
+		                  : "VK_ERROR_NATIVE_WINDOW_IN_USE_KHR The requested window is already in use by vulkan or another API in "
 		                    "a manner which prevents it from being used again";
 	case VK_ERROR_OUT_OF_DATE_KHR:
 		return !verbose

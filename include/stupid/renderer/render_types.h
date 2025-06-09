@@ -105,7 +105,7 @@ typedef enum st_renderer_backend {
         /// Default state (lets the renderer decide).
         ST_RENDERER_BACKEND_UNDEFINED,
 
-        /// Vulkan (currently the only option).
+        /// vulkan (currently the only option).
         ST_RENDERER_BACKEND_VULKAN,
 
         ST_RENDERER_BACKEND_MAX,
@@ -259,7 +259,7 @@ typedef void (*StPFN_renderer_clear)(void *pContext);
 
 /**
  * Renders a rect of the specified color.
- * @param pContext Pointer to a Vulkan renderer instance.
+ * @param pContext Pointer to a vulkan renderer instance.
  * @param x Horizontal position.
  * @param y Vertical position.
  * @param w Horizontal size.

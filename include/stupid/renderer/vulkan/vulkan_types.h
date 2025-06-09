@@ -44,16 +44,16 @@ typedef struct STUPID_A32 StRendererVulkanPipeline {
 /// Configuration for stRendererVulkanImageCreate
 /// @see StRendererVulkanImage
 typedef struct StRendererVulkanImageOptions {
-	/// The type of this Vulkan image.
+	/// The type of this vulkan image.
 	/// @note This should probably be VK_IMAGE_TYPE_2D.
 	VkImageType type;
 
-	/// The format for this Vulkan image.
+	/// The format for this vulkan image.
 	/// @note For color images, this should probably be VK_FORMAT_R8G8B8STUPID_A8_UNORM.
 	/// @note For depth images, this is determined by the GPU.
 	VkFormat format;
 
-	/// What this Vulkan image will be used for.
+	/// What this vulkan image will be used for.
 	/// @note For color images, this should probably be VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT.
 	/// @note For depth images, this should probably be VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT.
 	VkImageUsageFlags usage_flags;
@@ -61,7 +61,7 @@ typedef struct StRendererVulkanImageOptions {
 	/// Where this image will be stored in memory.
 	VkMemoryPropertyFlags memory_flags;
 
-	/// This seems redundant, but this is what type of stuff this Vulkan image will be used for.
+	/// This seems redundant, but this is what type of stuff this vulkan image will be used for.
 	/// @note For color images, this should probably be VK_IMAGE_ASPECT_COLOR_BIT.
 	/// @note For color images, this should probably be VK_IMAGE_ASPECT_DEPTH_BIT.
 	VkImageAspectFlags aspect_flags;
@@ -72,43 +72,43 @@ typedef struct StRendererVulkanImageOptions {
 	/// Height of this image.
 	u32 height;
 
-	/// Whether this image requires a Vulkan image view or not.
+	/// Whether this image requires a vulkan image view or not.
 	bool view;
 } StRendererVulkanImageOptions;
 
-/// @brief Vulkan images are used for a lot of things, but in most cases they can be thought of as buffers.
+/// @brief vulkan images are used for a lot of things, but in most cases they can be thought of as buffers.
 /// Color images are just buffers that can be drawn to the screen, and depth images are used to check how far things are from the camera.
 /// Image views are usually required to correctly interpret data from a vulkan image.
 /// @note A vulkan image view is not required if you are just using it as a buffer.
-/// @note A Vulkan image is another name for a Vulkan attachment.
+/// @note A vulkan image is another name for a vulkan attachment.
 typedef struct STUPID_A8 StRendererVulkanImage {
-	/// @brief Internal Vulkan image handle.
+	/// @brief Internal vulkan image handle.
 	/// Color images can be thought of as pictures (or buffers), and depth images calculate depth in 3D rendering.
-	/// @note You cant use this without a Vulkan image view.
+	/// @note You cant use this without a vulkan image view.
 	VkImage handle;
 
-	/// Required in order to use most Vulkan image types.
+	/// Required in order to use most vulkan image types.
 	VkImageView view;
 
-	/// Driver side information about Vulkan memory management.
+	/// Driver side information about vulkan memory management.
 	/// @todo Implement more centralized memory management (something like StRendererVulkanMemory in StRendererVulkanContext).
 	VkDeviceMemory memory;
 
-	/// The memory layout of this Vulkan image.
+	/// The memory layout of this vulkan image.
 	/// @note VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL for viewable images.
 	/// @note VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL for transfering memory from this image to an image or buffer.
 	/// @note VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL for transfering memory from an image or buffer to this image.
 	/// @note VK_IMAGE_LAYOUT_PRESENT_SRC_KHR for showing the image on the screen.
 	VkImageLayout layout;
 
-	/// Properties of this Vulkan image.
+	/// Properties of this vulkan image.
 	/// @note This is mostly just used to recreate an image.
 	StRendererVulkanImageOptions options;
 } StRendererVulkanImage;
 
-/// This manages the Vulkan images actually shown to the screen.
+/// This manages the vulkan images actually shown to the screen.
 typedef struct StRendererVulkanSwapchain {
-	/// Vulkan swapchain handle.
+	/// vulkan swapchain handle.
 	VkSwapchainKHR handle;
 
 	/// Swapchain image format.
@@ -118,7 +118,7 @@ typedef struct StRendererVulkanSwapchain {
 	/// Used to draw to a window.
 	VkSurfaceKHR surface;
 
-	/// These Vulkan images are the images that are actually shown on the screen.
+	/// These vulkan images are the images that are actually shown on the screen.
 	/// @note Its probably just a waste of memory to have more than 4.
 	StRendererVulkanImage pImages[4];
 
@@ -131,7 +131,7 @@ typedef struct StRendererVulkanSwapchain {
 	/// whether the swapchain is currently being recreated
 	STUPID_ATOMIC bool is_recreating;
 
-	/// number of Vulkan images to buffer when drawing (i.e. 2 would be double buffering)
+	/// number of vulkan images to buffer when drawing (i.e. 2 would be double buffering)
 	u32 image_count;
 
 	/// Current width of the swapchain.
@@ -150,7 +150,7 @@ typedef struct StRendererVulkanSwapchain {
 /// Information about swapchain capabilities, and available features.
 /// @see StRendererVulkanDevice, StRendererVulkanSwapchain
 typedef struct StRendererVulkanSwapchainSupport {
-	/// Usable Vulkan surface formats.
+	/// Usable vulkan surface formats.
 	/// @note A VkFormatSurfaceKHR object contains a single VkFormat, and a single compatible VkColorSpaceKHR.
 	/// @see format_count
 	VkSurfaceFormatKHR pFormats[303];
@@ -294,37 +294,37 @@ typedef struct StRendererVulkanDeviceRequirements {
         StRendererVulkanSwapchainSupport swapchain_capabilities;
 } StRendererVulkanDeviceRequirements;
 
-/// An instance of the Vulkan API.
+/// An instance of the vulkan API.
 /// @note There can only be one instance.
 typedef struct StRendererVulkanBackend {
-	/// Vulkan instance handle.
+	/// vulkan instance handle.
 	/// @note Destroy this last.
 	VkInstance instance;
 
-	/// Vulkan custom allocation callbacks.
-	/// @note If this is NULL (and it usually is), then Vulkan will use the default allocation callbacks.
+	/// vulkan custom allocation callbacks.
+	/// @note If this is NULL (and it usually is), then vulkan will use the default allocation callbacks.
 	VkAllocationCallbacks *pAllocator;
 
 	/// Physical GPU.
 	StRendererVulkanDevice device;
 
-	/// Required Vulkan layers.
+	/// Required vulkan layers.
 	const char **required_layers;
 
-	/// Required Vulkan extensions.
+	/// Required vulkan extensions.
 	const char **required_extensions;
 
-	/// Required Vulkan device extensions.
+	/// Required vulkan device extensions.
 	const char **required_device_extensions;
 
 #ifdef _DEBUG
-	/// Vulkan validation layer logger.
+	/// vulkan validation layer logger.
 	/// @note Debug only.
 	VkDebugUtilsMessengerEXT debug_messenger;
 #endif
 } StRendererVulkanBackend;
 
-/// Vulkan command buffer states.
+/// vulkan command buffer states.
 typedef enum st_renderer_vulkan_command_buffer_state {
 	/// the command buffer is ready to rumble
 	ST_RENDERER_VULKAN_COMMAND_BUFFER_STATE_READY,
@@ -335,9 +335,6 @@ typedef enum st_renderer_vulkan_command_buffer_state {
 	/// the command buffer is receiving commands
 	ST_RENDERER_VULKAN_COMMAND_BUFFER_STATE_IN_RENDERPASS,
 
-	/// the command buffer is done recording
-	ST_RENDERER_VULKAN_COMMAND_BUFFER_STATE_RECORDING_ENDED,
-
 	/// the command buffer has submitted the commands
 	ST_RENDERER_VULKAN_COMMAND_BUFFER_STATE_SUBMITTED,
 
@@ -347,21 +344,21 @@ typedef enum st_renderer_vulkan_command_buffer_state {
 
 /**
  * @struct StRendererVulkanCommandBuffer
- * this basically stores all the Vulkan rendering commands
+ * this basically stores all the vulkan rendering commands
  *
  * use StRendererVulkanCommandBufferBegin() to start recording rendering commands
  * use StRendererVulkanCommandBufferEnd() to finish recording rendering commands
  * use vkQueueSubmit() to execute rendering commands
  */
 typedef struct StRendererVulkanCommandBuffer {
-	/// Basically holds a list of commands for Vulkan to execute.
+	/// Basically holds a list of commands for vulkan to execute.
 	VkCommandBuffer handle;
 
 	/// Current state of the command buffer.
 	st_renderer_vulkan_command_buffer_state state;
 } StRendererVulkanCommandBuffer;
 
-/// A Vulkan renderer instance.
+/// A vulkan renderer instance.
 typedef struct STUPID_A32 StRendererVulkanContext {
 	/// An active vulkan backend.
 	/// @note There can only be one of these.
@@ -373,7 +370,7 @@ typedef struct STUPID_A32 StRendererVulkanContext {
 	/// Depth images.
 	StRendererVulkanImage *pDepthAttachments;
 
-	/// Vulkan images attached to the renderpass.
+	/// vulkan images attached to the renderpass.
 	/// @note The first one is always the current swapchain image.
 	VkRenderingAttachmentInfo *pRenderingAttachments;
 
@@ -381,16 +378,16 @@ typedef struct STUPID_A32 StRendererVulkanContext {
 	/// @note There should be swapchain.image_count of these.
 	StRendererVulkanCommandBuffer *pGraphicsCommandBuffers;
 
-	/// Vulkan graphics command buffer for the current frame.
+	/// vulkan graphics command buffer for the current frame.
 	/// @note Equivalent to pGraphicsCommandBuffers[current_frame].
 	StRendererVulkanCommandBuffer *pCurrentGraphicsCommandBuffer;
 
-	/// @brief These are basically Vulkan fences for GPU to GPU operations.
+	/// @brief These are basically vulkan fences for GPU to GPU operations.
 	/// These are used specifically to prevent asynchronous use of a swapchain image.
 	/// @note There should be swapchain.image_count of these.
 	VkSemaphore *pImageAvailableSemaphores;
 
-	/// @brief These are basically Vulkan fences for GPU to GPU operations.
+	/// @brief These are basically vulkan fences for GPU to GPU operations.
 	/// These are used specifically to prevent presentation of incomplete swapchain images.
 	/// @note There should be swapchain.image_count of these.
 	VkSemaphore *pQueueCompleteSemaphores;
@@ -416,7 +413,7 @@ typedef struct STUPID_A32 StRendererVulkanContext {
 	/// @note There should be swapchain.image_count of these.
 	VkFence *pInFlightFences;
 
-	/// The window associated with this Vulkan context.
+	/// The window associated with this vulkan context.
 	StWindow *pWindow;
 
 	/// Manages the images shown on the screen.
@@ -434,7 +431,7 @@ typedef struct STUPID_A32 StRendererVulkanContext {
 	/// Default background clear color.
 	VkClearValue clear_value;
 
-	/// @brief The index of the current Vulkan swapchain image.
+	/// @brief The index of the current vulkan swapchain image.
 	/// This iterates from 0 to swapchain.image_count in an unpredictable order.
 	/// @see current_frame
 	u32 image_index;

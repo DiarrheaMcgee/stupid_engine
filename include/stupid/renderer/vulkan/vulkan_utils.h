@@ -1,13 +1,13 @@
 #pragma once
 
+#include "stupid/renderer/vulkan/vulkan_types.h"
+
 #include "stupid/common.h"
 #include "stupid/assert.h"
 #include "stupid/event.h"
 
-#include "stupid/renderer/vulkan/vulkan_types.h"
-
 /**
- * @brief Gets a string explaining a Vulkan error code.
+ * @brief Gets a string explaining a vulkan error code.
  * @param result VkResult value.
  * @param verbose Whether extra information should be included explaining the result.
  * @return String corresponding to the error code.
@@ -16,8 +16,8 @@
 const char *stRendererVulkanResultStr(const VkResult result, const bool verbose);
 
 /**
- * Checks if a Vulkan result is a successful result.
- * @param result StRendererVulkan result.
+ * Checks if a vulkan result is a successful result.
+ * @param result vulkan function return code.
  * @return True if the result does not indicate failure.
  */
 static inline bool stRendererVulkanResultIsSuccess(const VkResult result)

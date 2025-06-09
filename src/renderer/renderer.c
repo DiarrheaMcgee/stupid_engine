@@ -609,10 +609,8 @@ bool stRendererLoadObject(StRenderer *pRenderer, const char *path, StObject *pOb
 	stRendererUnmap(pRenderer, &staging_buffer);
 	stRendererUnmap(pRenderer, &staging_index_buffer);
 
-	stRendererCopyBufferToBuffer(pRenderer, size, &pRenderer->positions, &staging_buffer, pRenderer->positions_end,
-	                             0);
-	stRendererCopyBufferToBuffer(pRenderer, index_size, &pRenderer->indices, &staging_index_buffer,
-	                             pRenderer->indices_end, 0);
+	stRendererCopyBufferToBuffer(pRenderer, size, &pRenderer->positions, &staging_buffer, pRenderer->positions_end, 0);
+	stRendererCopyBufferToBuffer(pRenderer, index_size, &pRenderer->indices, &staging_index_buffer, pRenderer->indices_end, 0);
 
 	stRendererDeallocate(pRenderer, &staging_buffer);
 	stRendererDeallocate(pRenderer, &staging_index_buffer);

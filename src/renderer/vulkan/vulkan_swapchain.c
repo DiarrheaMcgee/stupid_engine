@@ -19,7 +19,7 @@ bool stRendererVulkanSwapchainCreate(StRendererVulkanBackend *pBackend, VkSurfac
 	// make sure there are no active gpu operations
 	vkDeviceWaitIdle(pBackend->device.logical_device);
 
-	// pSwapchain->dimensions
+	// swapchain dimensions
 	VkExtent2D extent = { width, height };
 	pSwapchain->swapchain_width = width;
 	pSwapchain->swapchain_height = height;
@@ -81,7 +81,7 @@ bool stRendererVulkanSwapchainCreate(StRendererVulkanBackend *pBackend, VkSurfac
 	swapchain_info.imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT; // things the image is capable of doing (color for drawing and transfer dst for changing the format)
 
 	if (pBackend->device.graphics_queue_index != pBackend->device.present_queue_index) {
-		u32 pQueueFamilyIndices[2]     = {
+		u32 pQueueFamilyIndices[2] = {
 			(u32)pBackend->device.graphics_queue_index,
 			(u32)pBackend->device.present_queue_index
 		};
@@ -96,10 +96,10 @@ bool stRendererVulkanSwapchainCreate(StRendererVulkanBackend *pBackend, VkSurfac
 		swapchain_info.pQueueFamilyIndices   = NULL;
 	}
 
-	swapchain_info.preTransform   = pBackend->device.swapchain_support.capabilities.currentTransform; // orientation of the pSwapchain->(useless)
+	swapchain_info.preTransform   = pBackend->device.swapchain_support.capabilities.currentTransform; // orientation of the swapchain (useless)
 	swapchain_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR; // i think this is just the opacity
 	swapchain_info.presentMode    = present_mode;
-	swapchain_info.clipped	      = VK_TRUE; // whether Vulkan is allowed to skip rendering things not on the screen
+	swapchain_info.clipped	      = VK_TRUE; // whether vulkan is allowed to skip rendering things not on the screen
 
 	vkDeviceWaitIdle(pBackend->device.logical_device);
 	VK_CHECK(vkCreateSwapchainKHR(pBackend->device.logical_device, &swapchain_info, pBackend->pAllocator, &pSwapchain->handle));
@@ -127,7 +127,7 @@ bool stRendererVulkanSwapchainCreate(StRendererVulkanBackend *pBackend, VkSurfac
 		stRendererVulkanImageCreateSwapchain(tmp[i], pSwapchain->pImages[i].view, width, height, pSwapchain->image_format.format, &pSwapchain->pImages[i]);
 	}
 
-	// try to get a valid Vulkan depth format
+	// try to get a valid vulkan depth format
 	if (!stRendererVulkanDeviceGetDepthFormat(&pBackend->device)) {
 		pBackend->device.depth_format = VK_FORMAT_UNDEFINED;
 		STUPID_LOG_FATAL("failed to find a supported depth format");
@@ -135,10 +135,8 @@ bool stRendererVulkanSwapchainCreate(StRendererVulkanBackend *pBackend, VkSurfac
 	}
 
 	stRendererVulkanImageCreateDepth(pBackend, true, pSwapchain->swapchain_width, pSwapchain->swapchain_height, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &pSwapchain->depth_attachment);
-
-	STUPID_LOG_TRACE("created pSwapchain->%p", pSwapchain->handle);
-
 	pSwapchain->surface = surface;
+	STUPID_LOG_TRACE("created swapchain %p", pSwapchain->handle);
 
 	return pSwapchain;
 }
@@ -147,19 +145,18 @@ void stRendererVulkanSwapchainDestroy(StRendererVulkanBackend *pBackend, StRende
 {
 	STUPID_NC(pSwapchain);
 
-	// make sure the pSwapchain->isnt in use right now
+	// make sure the swapchain isnt in use right now
 	vkDeviceWaitIdle(pBackend->device.logical_device);
 
 	stRendererVulkanImageDestroy(pBackend, &pSwapchain->depth_attachment);
 
-	// destroy all the pSwapchain->image views
+	// destroy all the swapchain image views
 	for (int i = 0; i < pSwapchain->image_count; i++)
 		vkDestroyImageView(pBackend->device.logical_device, pSwapchain->pImages[i].view, pBackend->pAllocator);
 
-	// kill the swapchain
 	vkDestroySwapchainKHR(pBackend->device.logical_device, pSwapchain->handle, pBackend->pAllocator);
 
-	STUPID_LOG_TRACE("destroyed pSwapchain->%p", pSwapchain->handle);
+	STUPID_LOG_TRACE("destroyed swapchain %p", pSwapchain->handle);
 }
 
 bool stRendererVulkanSwapchainRecreate(StRendererVulkanBackend *pBackend, const u32 width, const u32 height, StRendererVulkanSwapchain *pSwapchain)
@@ -191,6 +188,7 @@ bool stRendererVulkanSwapchainRecreate(StRendererVulkanBackend *pBackend, const 
 	extent.height = STUPID_CLAMP(extent.height, min.height, max.height);
 
 	// the number of images in the swapchain
+	// theres not really much of a point in having more than 4
 	u32 image_count = STUPID_MIN(pBackend->device.swapchain_support.capabilities.minImageCount + 1, 4);
 
 	VkSwapchainCreateInfoKHR swapchain_info = {0};
@@ -235,19 +233,13 @@ bool stRendererVulkanSwapchainRecreate(StRendererVulkanBackend *pBackend, const 
 
 	vkDestroySwapchainKHR(pBackend->device.logical_device, pSwapchain->handle, pBackend->pAllocator);
 	pSwapchain->handle = tmp_swapchain;
-	VK_CHECK(vkGetSwapchainImagesKHR(pBackend->device.logical_device,
-					 pSwapchain->handle,
-					 &pSwapchain->image_count,
-					 NULL));
+	VK_CHECK(vkGetSwapchainImagesKHR(pBackend->device.logical_device, pSwapchain->handle, &pSwapchain->image_count, NULL));
 
 	if (pSwapchain->image_count > stMemCapacity(pSwapchain->pImages))
 		stMemResize(pSwapchain->pImages, pSwapchain->image_count);
 
 	VkImage tmp[4] = {0};
-	VK_CHECK(vkGetSwapchainImagesKHR(pBackend->device.logical_device,
-					 pSwapchain->handle,
-					 &pSwapchain->image_count,
-					 tmp));
+	VK_CHECK(vkGetSwapchainImagesKHR(pBackend->device.logical_device, pSwapchain->handle, &pSwapchain->image_count, tmp));
 
 	pSwapchain->current_frame = 0;
 
@@ -303,7 +295,7 @@ bool stRendererVulkanSwapchainAcquireNextImageIndex(StRendererVulkanContext *pCo
 bool stRendererVulkanSwapchainPresent(StRendererVulkanContext *pContext, VkSemaphore render_complete_semaphore, const u32 present_image_index)
 {
 	// information about presenting the swapchain image
-	VkPresentInfoKHR present_info = {0};
+	VkPresentInfoKHR present_info   = {0};
 	present_info.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 	present_info.waitSemaphoreCount = 1;
 	present_info.pWaitSemaphores    = &render_complete_semaphore;

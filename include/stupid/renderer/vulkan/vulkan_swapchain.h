@@ -4,8 +4,8 @@
 #include "stupid/renderer/vulkan/vulkan_types.h"
 
 /**
- * Creates a Vulkan swapchain.
- * @param pBackend Pointer to a Vulkan renderer backend.
+ * Creates a vulkan swapchain.
+ * @param pBackend Pointer to a vulkan renderer backend.
  * @param mode Present mode for the window surface.
  * @param width Width of the swapchain.
  * @param height Height of the swapchain.
@@ -14,15 +14,15 @@
 bool stRendererVulkanSwapchainCreate(StRendererVulkanBackend *pBackend, VkSurfaceKHR surface, VkPresentModeKHR mode, const u32 width, const u32 height, StRendererVulkanSwapchain *pSwapchain);
 
 /**
- * Destroys a Vulkan swapchain.
- * @param pBackend Pointer to a Vulkan renderer backend.
+ * Destroys a vulkan swapchain.
+ * @param pBackend Pointer to a vulkan renderer backend.
  * @param pSwapchain Pointer to a swapchain to destroy.
  */
 void stRendererVulkanSwapchainDestroy(StRendererVulkanBackend *pBackend, StRendererVulkanSwapchain *pSwapchain);
 
 /**
- * Recreates a Vulkan swapchain.
- * @param pBackend Pointer to a Vulkan renderer backend.
+ * Recreates a vulkan swapchain.
+ * @param pBackend Pointer to a vulkan renderer backend.
  * @param width New swapchain width.
  * @param height New swapchain height.
  */
@@ -30,10 +30,10 @@ void stRendererVulkanSwapchainDestroy(StRendererVulkanBackend *pBackend, StRende
 bool stRendererVulkanSwapchainRecreate(StRendererVulkanBackend *pBackend, const u32 width, const u32 height, StRendererVulkanSwapchain *pSwapchain);
 
 /**
- * Updates the internal Vulkan swapchain image index.
- * @param pContext Pointer to a Vulkan renderer instance.
+ * Updates the internal vulkan swapchain image index.
+ * @param pContext Pointer to a vulkan renderer instance.
  * @param timeout_ns Timeout for acquiring the next frame in nanoseconds.
- * @param fence StRendererVulkan fence used to prevent this swapchain image from being accessed asynchronously.
+ * @param fence vulkan fence used to prevent this swapchain image from being accessed asynchronously.
  * @return True if successful.
  * @note This must be called after each frame.
  */
@@ -41,8 +41,8 @@ bool stRendererVulkanSwapchainAcquireNextImageIndex(StRendererVulkanContext *pCo
 
 /**
  * Presents an image from the swapchain.
- * @param pContext Pointer to a Vulkan renderer instance.
- * @param render_complete_semaphore The Vulkan semaphore that will be signaled when the Vulkan image is ready to be presented.
+ * @param pContext Pointer to a vulkan renderer instance.
+ * @param render_complete_semaphore The vulkan semaphore that will be signaled when the vulkan image is ready to be presented.
  * @param present_image_index The index of the swapchain image to present to the screen.
  * @note stRendererVulkanSwapchainAcquireNextImageIndex() must be called before this.
  */

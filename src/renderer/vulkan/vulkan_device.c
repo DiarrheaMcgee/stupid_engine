@@ -6,7 +6,7 @@
 #include "stupid/logger.h"
 #include "stupid/memory.h"
 
-/// Vulkan queue families.
+/// vulkan queue families.
 /// @note Look it up.
 typedef struct QueueFamilies {
 	struct {
@@ -75,7 +75,7 @@ bool stRendererVulkanCheckSwapchainRequirements(StRendererVulkanSwapchainSupport
 }
 
 /**
- * Attempt to get the optimal Vulkan queue family indices from a VkPhysicalDevice.
+ * Attempt to get the optimal vulkan queue family indices from a VkPhysicalDevice.
  * @param physical_device GPU to get queue family indices from.
  * @param surface If surface is not VK_NULL_HANDLE, then it will be used to query present support.
  * Otherwise, present support will not be checked.
@@ -177,7 +177,7 @@ bool stRendererVulkanCreateDevice(VkInstance instance, VkAllocationCallbacks *pA
 	VkPhysicalDevice *pDevices = stMemAllocNL(VkPhysicalDevice, device_count);
 	vkEnumeratePhysicalDevices(instance, &device_count, pDevices);
 
-	// Vulkan physical device handle
+	// vulkan physical device handle
 	VkPhysicalDevice physical_device = VK_NULL_HANDLE;
 
 	// window used to check for surface support
@@ -301,7 +301,7 @@ bool stRendererVulkanCreateDevice(VkInstance instance, VkAllocationCallbacks *pA
 	vkGetPhysicalDeviceProperties(pDevice->physical_device, &pDevice->properties);
 	vkGetPhysicalDeviceFeatures(pDevice->physical_device, &pDevice->features);
 
-	// create a Vulkan command pool for this device TODO: create one for each thread when multithreading is added to the renderer
+	// create a vulkan command pool for this device TODO: create one for each thread when multithreading is added to the renderer
 	VkCommandPoolCreateInfo pool_info = {0};
 	pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
@@ -311,7 +311,7 @@ bool stRendererVulkanCreateDevice(VkInstance instance, VkAllocationCallbacks *pA
 	return true;
 }
 
-void stRendererVulkanDeviceDestroy(StRendererVulkanDevice *pDevice, VkAllocationCallbacks *pAllocator)
+void stRendererVulkanDeviceDestroy(VkAllocationCallbacks *pAllocator, StRendererVulkanDevice *pDevice)
 {
 	STUPID_NC(pDevice);
 	STUPID_NC(pDevice->logical_device);
@@ -323,7 +323,7 @@ bool stRendererVulkanDeviceGetDepthFormat(StRendererVulkanDevice *pDevice)
 	STUPID_NC(pDevice);
 	STUPID_NC(pDevice->logical_device);
 
-	// list of possible Vulkan depth formats (best to worst)
+	// list of possible vulkan depth formats (best to worst)
 	const VkFormat candidates[3] = { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT };
 	const u8 candidate_count = sizeof(candidates) / sizeof(VkFormat);
 	const u32 flags = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;

@@ -14,7 +14,7 @@ void stRendererVulkanImageConvert(VkCommandBuffer command_buffer, const VkImageL
 
 	if (pImage->layout == new_layout) return;
 
-	// TODO: setup StRendererVulkan Synchronization 2
+	// TODO: setup vulkan synchronization 2
 	VkImageMemoryBarrier barrier = {0};
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	barrier.oldLayout = pImage->layout;

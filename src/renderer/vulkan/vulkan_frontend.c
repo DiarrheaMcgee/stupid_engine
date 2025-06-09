@@ -19,17 +19,17 @@ StRendererVulkanContext *stRendererVulkanFrontendInit(StRendererVulkanBackend *p
 
 	// allocate all the crap
 	StRendererVulkanContext *pContext = stMemAlloc(StRendererVulkanContext, 1);
-	pContext->pBackend = pBackend;
-	pContext->pColorAttachments = stMemAlloc(StRendererVulkanImage, 32);
-	pContext->pDepthAttachments = stMemAlloc(StRendererVulkanImage, 16);
-	pContext->pViewports = stMemAlloc(VkViewport, 8);
-	pContext->pScissors = stMemAlloc(VkRect2D, 8);
+	pContext->pBackend                = pBackend;
+	pContext->pColorAttachments       = stMemAlloc(StRendererVulkanImage, 32);
+	pContext->pDepthAttachments       = stMemAlloc(StRendererVulkanImage, 16);
+	pContext->pViewports              = stMemAlloc(VkViewport, 8);
+	pContext->pScissors               = stMemAlloc(VkRect2D, 8);
 
-	pContext->clear_value.color.float32[0]   = 0.0f;
-	pContext->clear_value.color.float32[1]   = 0.0f;
-	pContext->clear_value.color.float32[2]   = 0.0f;
-	pContext->clear_value.color.float32[3]   = 1.0f;
-	pContext->clear_value.depthStencil.depth = 1.0f;
+	pContext->clear_value.color.float32[0]     = 0.0f;
+	pContext->clear_value.color.float32[1]     = 0.0f;
+	pContext->clear_value.color.float32[2]     = 0.0f;
+	pContext->clear_value.color.float32[3]     = 1.0f;
+	pContext->clear_value.depthStencil.depth   = 1.0f;
 	pContext->clear_value.depthStencil.stencil = 0;
 
 	pContext->pWindow = pWindow;
@@ -57,12 +57,12 @@ StRendererVulkanContext *stRendererVulkanFrontendInit(StRendererVulkanBackend *p
 	if (pContext->swapchain.present_mode == VK_PRESENT_MODE_FIFO_KHR)
 		pContext->rvals.vsync = true;
 
-	pContext->pGraphicsCommandBuffers = stMemAlloc(StRendererVulkanCommandBuffer, pContext->swapchain.image_count);
-
+	pContext->pGraphicsCommandBuffers   = stMemAlloc(StRendererVulkanCommandBuffer, pContext->swapchain.image_count);
 	pContext->pImageAvailableSemaphores = stMemAlloc(VkSemaphore, pContext->swapchain.image_count + 1);
 	pContext->pQueueCompleteSemaphores  = stMemAlloc(VkSemaphore, pContext->swapchain.image_count + 1);
-	pContext->pInFlightFences = stMemAlloc(VkFence, pContext->swapchain.image_count + 1);
+	pContext->pInFlightFences           = stMemAlloc(VkFence, pContext->swapchain.image_count + 1);
 
+	// create semaphores and fences
 	for (int i = 0; i < pContext->swapchain.image_count + 1; i++) {
 		VkSemaphoreCreateInfo image_available_semaphore_info = {0};
 		image_available_semaphore_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -74,13 +74,6 @@ StRendererVulkanContext *stRendererVulkanFrontendInit(StRendererVulkanBackend *p
 
 		stRendererVulkanFenceCreate(pContext->pBackend, true, &pContext->pInFlightFences[i]);
 	}
-
-	if (pContext->swapchain.image_count > stMemCapacity(pContext->pGraphicsCommandBuffers))
-		stMemResize(pContext->pGraphicsCommandBuffers, pContext->swapchain.image_count);
-
-	if (pContext->swapchain.image_count < stMemCapacity(pContext->pGraphicsCommandBuffers))
-		for (int i = 0; i < stMemLength(pContext->pGraphicsCommandBuffers); i++)
-			stRendererVulkanCommandBufferFree(pContext, pContext->pBackend->device.graphics_command_pool, &pContext->pGraphicsCommandBuffers[i]);
 
 	for (int i = 0; i < pContext->swapchain.image_count; i++) {
 		if (pContext->pGraphicsCommandBuffers[i].handle == VK_NULL_HANDLE) {
@@ -197,12 +190,24 @@ void stRendererVulkanFrontendShutdown(StRendererVulkanContext *pContext)
 
 bool stRendererVulkanFrontendResize(StRendererVulkanContext *pContext, const u32 width, const u32 height)
 {
-	STUPID_LOG_DEBUG("%ux%u", width, height);
 	pContext->rvals.width = width;
 	pContext->rvals.height = height;
 	if (!stRendererVulkanSwapchainRecreate(pContext->pBackend, width, height, &pContext->swapchain)) return false;
 	pContext->pRenderingAttachments[0].imageView = pContext->swapchain.pImages[pContext->image_index].view;
 	pContext->depth_attachment.imageView = pContext->swapchain.depth_attachment.view;
+	
+	// resize the graphics command buffer array if needed
+	if (stMemCapacity(pContext->pGraphicsCommandBuffers) > pContext->swapchain.image_count) {
+		for (int i = pContext->swapchain.image_count; i < stMemLength(pContext->pGraphicsCommandBuffers); i++)
+			stRendererVulkanCommandBufferFree(pContext, pContext->pBackend->device.graphics_command_pool, &pContext->pGraphicsCommandBuffers[i]);
+	}
+	else {
+		for (int i = stMemCapacity(pContext->pGraphicsCommandBuffers); i < pContext->swapchain.image_count; i++) {
+			STUPID_LOG_DEBUG("%d %d", i, pContext->swapchain.image_count);
+			stMemset(&pContext->pGraphicsCommandBuffers[i], 0, sizeof(StRendererVulkanCommandBuffer));
+			stRendererVulkanCommandBufferAllocate(pContext, pContext->pBackend->device.graphics_command_pool, true, &pContext->pGraphicsCommandBuffers[i]);
+		}
+	}
 	return true;
 }
 
@@ -216,14 +221,14 @@ bool stRendererVulkanFrontendPrepareFrame(StRendererVulkanContext *pContext, con
 	if (pContext->pWindow->resizing || pContext->swapchain.is_recreating)
 		return false;
 
-	// recreate the Vulkan swapchain if thats a thing that should happen
+	// recreate the vulkan swapchain if thats a thing that should happen
 	if (pContext->recreating_swapchain) {
 		VK_CHECK(vkDeviceWaitIdle(pContext->pBackend->device.logical_device));
 		return false;
 	}
 
 	if (!stRendererVulkanFenceWait(pContext->pBackend,  &pContext->pInFlightFences[pContext->image_index])) {
-		STUPID_LOG_ERROR("stRendererVulkanRendererPrepareFrame(): Vulkan fence timed out");
+		STUPID_LOG_ERROR("stRendererVulkanRendererPrepareFrame(): vulkan fence timed out");
 		return false;
 	}
 	stRendererVulkanFenceReset(pContext->pBackend, &pContext->pInFlightFences[pContext->image_index]);
@@ -242,7 +247,7 @@ bool stRendererVulkanFrontendPrepareFrame(StRendererVulkanContext *pContext, con
 	pContext->pScissors[0].extent.width  = pContext->swapchain.swapchain_width;
 	pContext->pScissors[0].extent.height = pContext->swapchain.swapchain_height;
 	stRendererVulkanCommandBufferReset(pContext->pCurrentGraphicsCommandBuffer);
-	stRendererVulkanCommandBufferBegin(pContext->pCurrentGraphicsCommandBuffer, false, false, false);
+	stRendererVulkanCommandBufferBegin(false, false, false, pContext->pCurrentGraphicsCommandBuffer);
 
 	vkCmdBindPipeline(pContext->pCurrentGraphicsCommandBuffer->handle, VK_PIPELINE_BIND_POINT_GRAPHICS, pContext->graphics_pipeline.handle);
 
@@ -301,18 +306,16 @@ bool stRendererVulkanFrontendEndFrame(StRendererVulkanContext *pContext, const f
 	STUPID_NC(pContext->pWindow);
 
 	vkCmdEndRendering(pContext->pCurrentGraphicsCommandBuffer->handle);
-
 	stRendererVulkanImageConvert(pContext->pCurrentGraphicsCommandBuffer->handle, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, &pContext->swapchain.pImages[pContext->image_index]);
-
 	stRendererVulkanCommandBufferEnd(pContext->pCurrentGraphicsCommandBuffer);
 
 	VkSubmitInfo submit_info = {0};
 	submit_info.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	submit_info.pCommandBuffers      = &pContext->pCurrentGraphicsCommandBuffer->handle;
 	submit_info.commandBufferCount   = 1;
-	submit_info.pSignalSemaphores    = &pContext->pQueueCompleteSemaphores[pContext->current_frame]; // Vulkan semaphores that will be signaled when the queues have finished
+	submit_info.pSignalSemaphores    = &pContext->pQueueCompleteSemaphores[pContext->current_frame]; // vulkan semaphores that will be signaled when the queues have finished
 	submit_info.signalSemaphoreCount = 1;
-	submit_info.pWaitSemaphores      = &pContext->pImageAvailableSemaphores[pContext->current_frame]; // Vulkan semaphores to wait on until the image is available
+	submit_info.pWaitSemaphores      = &pContext->pImageAvailableSemaphores[pContext->current_frame]; // vulkan semaphores to wait on until the image is available
 	submit_info.waitSemaphoreCount   = 1;
 
 	const VkPipelineStageFlags flags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT; // VK_PIPELNE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT allows one frame to be presented at a time for some reason
@@ -326,7 +329,6 @@ bool stRendererVulkanFrontendEndFrame(StRendererVulkanContext *pContext, const f
 		return false;
 	}
 
-	stRendererVulkanCommandBufferUpdateSubmitted(pContext->pCurrentGraphicsCommandBuffer);
 	stRendererVulkanSwapchainPresent(pContext, pContext->pQueueCompleteSemaphores[pContext->current_frame], pContext->image_index);
 
 	pContext->rvals.frames++;
