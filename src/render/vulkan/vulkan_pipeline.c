@@ -1,5 +1,5 @@
-#include "stupid/renderer/vulkan/vulkan_pipeline.h"
-#include "stupid/renderer/vulkan/vulkan_utils.h"
+#include "stupid/render/vulkan/vulkan_pipeline.h"
+#include "stupid/render/vulkan/vulkan_utils.h"
 
 #include "stupid/memory.h"
 

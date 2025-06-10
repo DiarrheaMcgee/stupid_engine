@@ -17,7 +17,7 @@
 #include "stupid/memory.h"
 #include "stupid/render.h"
 
-#include "stupid/renderer/render_types.h"
+#include "stupid/render/render_types.h"
 
 #include <signal.h>
 #include <stdlib.h>

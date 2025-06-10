@@ -1,7 +1,7 @@
 #pragma once
 
-#include "stupid/renderer/vulkan/vulkan_types.h"
-#include "stupid/renderer/vulkan/vulkan_utils.h"
+#include "stupid/render/vulkan/vulkan_types.h"
+#include "stupid/render/vulkan/vulkan_utils.h"
 
 #include "stupid/common.h"
 #include "stupid/assert.h"

@@ -5,7 +5,7 @@
 
 #include "stupid/math/linear.h"
 
-#include "stupid/renderer/render_types.h"
+#include "stupid/render/render_types.h"
 
 /**
  * Initializes a renderer backend.

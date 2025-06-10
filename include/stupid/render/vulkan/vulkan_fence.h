@@ -1,6 +1,6 @@
 #pragma once
 
-#include "stupid/renderer/vulkan/vulkan_types.h"
+#include "stupid/render/vulkan/vulkan_types.h"
 
 /**
  * Creates a vulkan fence.

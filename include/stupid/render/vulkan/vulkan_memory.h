@@ -1,7 +1,7 @@
 #pragma once
 
 #include "stupid/common.h"
-#include "stupid/renderer/vulkan/vulkan_types.h"
+#include "stupid/render/vulkan/vulkan_types.h"
 
 i32 stRendererVulkanMemoryGetIndex(const StRendererVulkanBackend *pBackend, const u32 type_filter, const u32 property_flags);
 

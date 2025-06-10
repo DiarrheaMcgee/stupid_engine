@@ -1,5 +1,5 @@
-#include "stupid/renderer/vulkan/vulkan_memory.h"
-#include "stupid/renderer/vulkan/vulkan_command_buffer.h"
+#include "stupid/render/vulkan/vulkan_memory.h"
+#include "stupid/render/vulkan/vulkan_command_buffer.h"
 
 #include "stupid/memory.h"
 

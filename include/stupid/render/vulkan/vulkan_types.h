@@ -1,7 +1,7 @@
 #pragma once
 
 #include "stupid/common.h"
-#include "stupid/renderer/render_types.h"
+#include "stupid/render/render_types.h"
 #include "stupid/math/linear.h"
 
 #include <vulkan/vulkan.h>
@@ -422,6 +422,17 @@ typedef struct STUPID_A32 StRendererVulkanContext {
 
 	/// The window associated with this vulkan context.
 	StWindow *pWindow;
+
+	/// Multithreaded rendering.
+	/// @note One per swapchain image.
+	StThread **pRenderThreads;
+
+	/// @brief Which thread to render the next frame on.
+	/// Basically whenever the frame end function is called this number becomes (thread_index + 1) % stMemLength(pRenderThreads)
+	usize thread_index;
+
+	StRendererBuffer **pObjectBuffer;
+	StRendererBuffer **pTransformationBuffer;
 
 	/// Manages the images shown on the screen.
 	StRendererVulkanSwapchain swapchain;

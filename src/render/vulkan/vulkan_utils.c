@@ -1,4 +1,4 @@
-#include "stupid/renderer/vulkan/vulkan_utils.h"
+#include "stupid/render/vulkan/vulkan_utils.h"
 
 const char *stRendererVulkanResultStr(const VkResult result, const bool verbose)
 {

@@ -10,8 +10,8 @@
 #include "stupid/logger.h"
 #include "stupid/memory.h"
 
-#include "stupid/renderer/vulkan/vulkan_utils.h"
-#include "stupid/renderer/vulkan/vulkan_types.h"
+#include "stupid/render/vulkan/vulkan_utils.h"
+#include "stupid/render/vulkan/vulkan_types.h"
 
 #define RGFW_VULKAN
 #define RGFW_NO_API

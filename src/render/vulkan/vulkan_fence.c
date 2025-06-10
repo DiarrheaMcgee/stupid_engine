@@ -1,5 +1,5 @@
-#include "stupid/renderer/vulkan/vulkan_fence.h"
-#include "stupid/renderer/vulkan/vulkan_utils.h"
+#include "stupid/render/vulkan/vulkan_fence.h"
+#include "stupid/render/vulkan/vulkan_utils.h"
 
 #include "stupid/logger.h"
 

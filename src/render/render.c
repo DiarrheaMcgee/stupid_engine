@@ -8,11 +8,11 @@
 
 #include "stupid/math/linear.h"
 
-#include "stupid/renderer/render_types.h"
-#include "stupid/renderer/vulkan/vulkan_backend.h"
-#include "stupid/renderer/vulkan/vulkan_memory.h"
-#include "stupid/renderer/vulkan/vulkan_types.h"
-#include "stupid/renderer/vulkan/vulkan_frontend.h"
+#include "stupid/render/render_types.h"
+#include "stupid/render/vulkan/vulkan_backend.h"
+#include "stupid/render/vulkan/vulkan_memory.h"
+#include "stupid/render/vulkan/vulkan_types.h"
+#include "stupid/render/vulkan/vulkan_frontend.h"
 
 #define FAST_OBJ_IMPLEMENTATION
 #include "fast_obj.h"
@@ -141,6 +141,10 @@ StRenderer *stRendererCreate(void *pBackend, StWindow *pWindow)
 	stRendererAllocate(pRenderer, STUPID_RENDERER_OBJECT_INDEX_BUFFER_SIZE, ST_RENDERER_BUFFER_USAGE_GENERIC, &pRenderer->indices);
 	stRendererAllocate(pRenderer, STUPID_RENDERER_MAX_OBJECTS * sizeof(StMat4) * 2, ST_RENDERER_BUFFER_USAGE_GENERIC, &pRenderer->models);
 	stRendererAllocate(pRenderer, STUPID_RENDERER_MAX_OBJECTS * sizeof(StVec3) * 3, ST_RENDERER_BUFFER_USAGE_GENERIC | ST_RENDERER_BUFFER_USAGE_CPU_ACCESS_FAST, &pRenderer->transformations);
+
+	StRendererVulkanContext *pContext = pRenderer->pRendererInstance;
+	pContext->pObjectBuffer         = (StRendererBuffer **)&pRenderer->models;
+	pContext->pTransformationBuffer = (StRendererBuffer **)&pRenderer->transformations;
 
 	StVec3 *map = stRendererMap(pRenderer, &pRenderer->transformations);
 	for (int i = 0; i < STUPID_RENDERER_MAX_OBJECTS; i++) {
@@ -341,7 +345,7 @@ bool stRendererResize(StRenderer *pRenderer, const i32 width, const i32 height)
 
 	if (pRenderer->state == ST_RENDERER_STATE_FRAME_PREPARE || pRenderer->state == ST_RENDERER_STATE_FRAME_START ||
 	    pRenderer->state == ST_RENDERER_STATE_FRAME_END) {
-		STUPID_LOG_ERROR("stRendererResize() called mid-frame");
+		STUPID_LOG_ERROR("called mid-frame");
 		stMutexUnlock(&pRenderer->lock);
 		return false;
 	}
@@ -358,14 +362,13 @@ bool stRendererPrepareFrame(StRenderer *pRenderer, f32 delta_time)
 
 	//stMutexLock(&pRenderer->lock);
 
-	if (pRenderer->state == ST_RENDERER_STATE_FRAME_PREPARE || pRenderer->state == ST_RENDERER_STATE_FRAME_START ||
-	    pRenderer->state == ST_RENDERER_STATE_FRAME_END) {
-		STUPID_LOG_ERROR("stRendererPrepareFrame() called twice");
+	if (pRenderer->state == ST_RENDERER_STATE_FRAME_PREPARE || pRenderer->state == ST_RENDERER_STATE_FRAME_START || pRenderer->state == ST_RENDERER_STATE_FRAME_END) {
+		STUPID_LOG_ERROR("called twice");
 		//stMutexUnlock(&pRenderer->lock);
 		return false;
 	}
-	else if (STUPID_IS_NAN(delta_time)) {
-		STUPID_LOG_ERROR("stRendererPrepareFrame() called with NAN delta_time");
+	else if (STUPID_UNLIKELY(STUPID_IS_NAN(delta_time))) {
+		STUPID_LOG_ERROR("called with NAN delta_time");
 		//stMutexUnlock(&pRenderer->lock);
 		return false;
 	}
@@ -389,17 +392,17 @@ bool stRendererStartFrame(StRenderer *pRenderer, const f32 delta_time)
 	//stMutexLock(&pRenderer->lock);
 
 	if (pRenderer->state != ST_RENDERER_STATE_FRAME_PREPARE) {
-		STUPID_LOG_ERROR("stRendererStartFrame() called before stRendererPrepareFrame()");
+		STUPID_LOG_ERROR("called before stRendererPrepareFrame()");
 		//stMutexUnlock(&pRenderer->lock);
 		return false;
 	}
 	else if (pRenderer->state == ST_RENDERER_STATE_FRAME_START) {
-		STUPID_LOG_ERROR("stRendererStartFrame() called twice");
+		STUPID_LOG_ERROR("called twice");
 		//stMutexUnlock(&pRenderer->lock);
 		return false;
 	}
 	else if (STUPID_IS_NAN(delta_time)) {
-		STUPID_LOG_ERROR("stRendererStartFrame() called with NAN delta_time");
+		STUPID_LOG_ERROR("called with NAN delta_time");
 		//stMutexUnlock(&pRenderer->lock);
 		return false;
 	}
@@ -420,17 +423,17 @@ bool stRendererEndFrame(StRenderer *pRenderer, const f32 delta_time)
 	//stMutexLock(&pRenderer->lock);
 
 	if (pRenderer->state != ST_RENDERER_STATE_FRAME_START) {
-		STUPID_LOG_ERROR("stRendererEndFrame() called before stRendererStartFrame()");
+		STUPID_LOG_ERROR("called before stRendererStartFrame()");
 		//stMutexUnlock(&pRenderer->lock);
 		return false;
 	}
 	else if (pRenderer->state == ST_RENDERER_STATE_FRAME_END) {
-		STUPID_LOG_ERROR("stRendererEndFrame() called twice");
+		STUPID_LOG_ERROR("called twice");
 		//stMutexUnlock(&pRenderer->lock);
 		return false;
 	}
 	else if (STUPID_IS_NAN(delta_time)) {
-		STUPID_LOG_ERROR("stRendererEndFrame() called with NAN delta_time");
+		STUPID_LOG_ERROR("called with NAN delta_time");
 		//stMutexUnlock(&pRenderer->lock);
 		return false;
 	}
@@ -450,12 +453,12 @@ bool stRendererSetClearColor(StRenderer *pRenderer, StColor color)
 	//stMutexLock(&pRenderer->lock);
 
 	if (pRenderer->state != ST_RENDERER_STATE_FRAME_PREPARE) {
-		STUPID_LOG_ERROR("stRendererSetBackgroundColor() called before stRendererPrepareFrame()");
+		STUPID_LOG_ERROR("called before stRendererPrepareFrame()");
 		//stMutexUnlock(&pRenderer->lock);
 		return false;
 	}
 	else if (STUPID_IS_NAN(color.r) || STUPID_IS_NAN(color.g) || STUPID_IS_NAN(color.b) || STUPID_IS_NAN(color.a)) {
-		STUPID_LOG_ERROR("stRendererEndFrame() called with NAN color");
+		STUPID_LOG_ERROR("called with NAN color");
 		//stMutexUnlock(&pRenderer->lock);
 		return false;
 	}
@@ -480,7 +483,7 @@ bool stRendererDrawRect(StRenderer *pRenderer, i32 x, i32 y, i32 w, i32 h, const
 	//stMutexLock(&pRenderer->lock);
 
 	if (pRenderer->state != ST_RENDERER_STATE_FRAME_START) {
-		STUPID_LOG_ERROR("stRendererDrawRect() called before stRendererStartFrame()");
+		STUPID_LOG_ERROR("called before stRendererStartFrame()");
 		//stMutexUnlock(&pRenderer->lock);
 		return false;
 	}
@@ -518,7 +521,7 @@ bool stRendererClear(StRenderer *pRenderer)
 	//stMutexLock(&pRenderer->lock);
 
 	if (pRenderer->state != ST_RENDERER_STATE_FRAME_PREPARE) {
-		STUPID_LOG_ERROR("stRendererClear() called before stRendererPrepareFrame()");
+		STUPID_LOG_ERROR("called before stRendererPrepareFrame()");
 		//stMutexUnlock(&pRenderer->lock);
 		return false;
 	}
@@ -648,7 +651,7 @@ bool stRendererDrawObjects(StRenderer *pRenderer, const usize count, StObject *p
 	STUPID_ASSERT(count < STUPID_RENDERER_MAX_OBJECTS, "object count out of bounds");
 
 	if (pRenderer->state != ST_RENDERER_STATE_FRAME_START) {
-		STUPID_LOG_ERROR("stRendererDrawObject() called before stRendererStartFrame()");
+		STUPID_LOG_ERROR("called before stRendererStartFrame()");
 		return false;
 	}
 

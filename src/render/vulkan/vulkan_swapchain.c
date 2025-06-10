@@ -1,7 +1,7 @@
-#include "stupid/renderer/vulkan/vulkan_swapchain.h"
-#include "stupid/renderer/vulkan/vulkan_device.h"
-#include "stupid/renderer/vulkan/vulkan_image.h"
-#include "stupid/renderer/vulkan/vulkan_utils.h"
+#include "stupid/render/vulkan/vulkan_swapchain.h"
+#include "stupid/render/vulkan/vulkan_device.h"
+#include "stupid/render/vulkan/vulkan_image.h"
+#include "stupid/render/vulkan/vulkan_utils.h"
 
 #include "stupid/common.h"
 #include "stupid/logger.h"

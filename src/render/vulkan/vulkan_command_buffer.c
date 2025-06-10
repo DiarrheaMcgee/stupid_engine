@@ -1,6 +1,6 @@
-#include "stupid/renderer/vulkan/vulkan_command_buffer.h"
-#include "stupid/renderer/vulkan/vulkan_types.h"
-#include "stupid/renderer/vulkan/vulkan_utils.h"
+#include "stupid/render/vulkan/vulkan_command_buffer.h"
+#include "stupid/render/vulkan/vulkan_types.h"
+#include "stupid/render/vulkan/vulkan_utils.h"
 #include <vulkan/vulkan_core.h>
 
 void stRendererVulkanCommandBufferAllocate(const StRendererVulkanContext *pContext, const VkCommandPool pool, const bool is_primary, StRendererVulkanCommandBuffer *pCommandBuffer)

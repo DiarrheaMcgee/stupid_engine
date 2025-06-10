@@ -1,8 +1,8 @@
-#include "stupid/renderer/vulkan/vulkan_image.h"
-#include "stupid/renderer/vulkan/vulkan_types.h"
-#include "stupid/renderer/vulkan/vulkan_utils.h"
-#include "stupid/renderer/vulkan/vulkan_memory.h"
-#include "stupid/renderer/vulkan/vulkan_command_buffer.h"
+#include "stupid/render/vulkan/vulkan_image.h"
+#include "stupid/render/vulkan/vulkan_types.h"
+#include "stupid/render/vulkan/vulkan_utils.h"
+#include "stupid/render/vulkan/vulkan_memory.h"
+#include "stupid/render/vulkan/vulkan_command_buffer.h"
 
 #include "stupid/common.h"
 #include "stupid/logger.h"

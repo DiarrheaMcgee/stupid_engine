@@ -9,7 +9,7 @@
 #include "stupid/window.h"
 #include "stupid/thread.h"
 
-#include "stupid/renderer/render_types.h"
+#include "stupid/render/render_types.h"
 
 /// Enables vsync when used with engineSetFramerate().
 #define STUPID_ENGINE_FRAMERATE_VSYNC ((f64)0.0)

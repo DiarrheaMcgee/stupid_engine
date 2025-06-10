@@ -1,7 +1,7 @@
 #pragma once
 
 #include "stupid/common.h"
-#include "stupid/renderer/vulkan/vulkan_types.h"
+#include "stupid/render/vulkan/vulkan_types.h"
 
 void stRendererVulkanPipelineCreate(const StRendererVulkanBackend *pBackend,
                                     StRendererVulkanPipeline *pPipeline,

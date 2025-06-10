@@ -1,5 +1,5 @@
-#include "stupid/renderer/vulkan/vulkan_device.h"
-#include "stupid/renderer/vulkan/vulkan_utils.h"
+#include "stupid/render/vulkan/vulkan_device.h"
+#include "stupid/render/vulkan/vulkan_utils.h"
 
 #include "stupid/common.h"
 #include "stupid/window.h"

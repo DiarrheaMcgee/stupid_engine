@@ -8,7 +8,7 @@
 #include <stupid/math/sin.h>
 #include <stupid/math/constants.h>
 
-#include <stupid/renderer/render_types.h>
+#include <stupid/render/render_types.h>
 #include <stupid/render.h>
 
 static StObject cube = {0};

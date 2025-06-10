@@ -2,7 +2,7 @@
 
 #include "stupid/common.h"
 #include "stupid/window.h"
-#include "stupid/renderer/vulkan/vulkan_types.h"
+#include "stupid/render/vulkan/vulkan_types.h"
 
 /**
  * Shuts down a vulkan frontend instnace.
