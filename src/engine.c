@@ -25,8 +25,8 @@
 static bool signal_sent = false;
 
 /**
- * function for shutting down all currently active subsystems
- * @param pState pointer to an engine instance
+ * Function for shutting down all currently active subsystems.
+ * @param pState Pointer to an engine instance.
  */
 static void shutdownAll(StEngine *pEngine)
 {
@@ -49,6 +49,10 @@ static void shutdownAll(StEngine *pEngine)
 	stMemDeallocNL(pEngine->pState);
 }
 
+/**
+ * Handles signals like SIGINT.
+ * @param sig Signal sent.
+ */
 static void signalHandler(const int sig)
 {
 	signal_sent = true;

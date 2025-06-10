@@ -262,23 +262,6 @@ typedef struct StThread {
 StThread *(stThreadCreate)(void);
 
 /**
- * Creates a new thread.
- * @param name The name of the thread.
- * @return A pointer to a thread which must be rejoined with stThreadJoin(), and then destroyed with stThreadDestroy().
- * @see stThreadDestroy, Thread
- */
-//#define stThreadCreate(name)   (stThreadCreate)(name STUPID_DBG_PARAMS)
-//
-///**
-// * Creates a new thread.
-// * @param name The name of the thread.
-// * @return A pointer to a thread which must be rejoined with stThreadJoin(), and then destroyed with stThreadDestroy().
-// * @note Does not print logs.
-// * @see stThreadDestroy, Thread
-// */
-//#define stThreadCreateNL(name) (stThreadCreate)(name STUPID_DBG_PARAMS_NL)
-
-/**
  * Adds a job to the thread queue.
  * @param pThread Pointer to a thread.
  * @param pArg Pointer to an argument for the thread (this is also where the thread will store its return value).

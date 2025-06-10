@@ -61,13 +61,23 @@ typedef enum st_engine_start_return_code {
 /// Return codes for stEngineShutdown().
 /// @see stEngineShutdown, StEngine
 typedef enum st_engine_shutdown_return_code {
+	/// The engine shutdown successfully.
 	STUPID_ENGINE_SHUTDOWN_SUCCESS = 0,
+
+	/// stEngineShutdown() was called before stEngineInit().
 	STUPID_ENGINE_SHUTDOWN_BEFORE_INIT = -1
 } st_engine_shutdown_return_code;
 
+/// States the engine can be in.
+/// @see StEngineState
 typedef enum st_engine_state {
+	/// The engine has not been initialized.
 	STUPID_ENGINE_STATE_UNINITIALIZED,
+
+	/// The engine has been initialized.
 	STUPID_ENGINE_STATE_INITIALIZED,
+
+	/// The engine has been initialized, and started.
 	STUPID_ENGINE_STATE_STARTED
 } st_engine_state;
 
@@ -244,7 +254,16 @@ typedef struct StEngineState {
 	/// Used to keep track of how many frames have passed since updating the average framerate.
 	u32 average_fps_counter;
 
-	f64 last_tick_time;
+	/// @brief Used to keep track of time between ticks, and how many ticks are queued.
+	/// For example, if the time between ticks is 0.1, and tick_time is 0.2,
+	/// one tick will happen, and the timer will be reduced to 0.1.
+	f64 tick_time;
+
+	/// Used to figure out how long its been between ticks.
+	StClock tick_timer;
+
+	/// Time between ticks.
+	f64 tickrate;
 
 	/// Total frames rendered.
 	/// @note This does not increment while the engine is suspended.
@@ -280,21 +299,8 @@ typedef struct StEngineState {
 	/// The current state (like STUPID_ENGINE_STATE_INITIALIZED or something).
 	st_engine_state state;
 
-	/// Ticks queued.
-	u16 ticks;
-
-	/// @brief Used to keep track of time, and how many ticks are queued.
-	/// For example, if the time between ticks is 0.1, and tick_time is 0.2,
-	/// one tick will happen, and the timer will be reduced to 0.1.
-	f64 tick_time;
-
-	StClock tick_timer;
-
 	/// Ticks per second.
 	u16 tps;
-
-	/// Time between ticks.
-	f64 tickrate;
 } StEngineState;
 
 /**
@@ -352,27 +358,33 @@ static STUPID_INLINE bool stEngineNextFrame(const StEngine *pEngine)
 	return true;
 }
 
+/**
+ * Checks if the next tick should happen now.
+ * @param pEngine Pointer to an engine instance.
+ * @return True if its been at least pEngine->pState->tick_time since the last tick.
+ */
 static STUPID_INLINE bool stEngineNextTick(StEngine *pEngine)
 {
 	STUPID_NC(pEngine);
 	STUPID_NC(pEngine->pState);
-	//stFenceReset(&pEngine->pState->frame_start);
 
 	pEngine->pState->tick_time += stGetClockElapsed(&pEngine->pState->tick_timer);
 	stClockUpdate(&pEngine->pState->tick_timer);
 
 	if (pEngine->pState->tick_time >= pEngine->pState->tickrate) {
 		pEngine->pState->tick_time -= pEngine->pState->tickrate;
+		pEngine->callbackUpdate(pEngine, pEngine->pState->tick_time);
 		return true;
 	}
 	else
 		return false;
-
-	//pEngine->pState->frame_start.lock = false;
-	//pEngine->pState->frame_start.lock = true;
-	//stFenceSignal(&pEngine->pState->frame_start);
 }
 
+/**
+ * Divides a number by the ticks per second.
+ * @param n Number to divide.
+ * @param pEngine Pointer to an engine instance.
+ */
 #define STUPID_TICKTIME(n, pEngine) ((f64)(n) / (f64)(pEngine)->pState->tps)
 
 /**

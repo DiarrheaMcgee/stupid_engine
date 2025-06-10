@@ -48,6 +48,10 @@ typedef struct StRendererVulkanImageOptions {
 	/// @note This should probably be VK_IMAGE_TYPE_2D.
 	VkImageType type;
 
+	/// The type of the vulkan image view.
+	/// @note This should probably be VK_IMAGE_VIEW_TYPE_2D.
+	VkImageViewType view_type;
+
 	/// The format for this vulkan image.
 	/// @note For color images, this should probably be VK_FORMAT_R8G8B8STUPID_A8_UNORM.
 	/// @note For depth images, this is determined by the GPU.
@@ -104,6 +108,9 @@ typedef struct STUPID_A8 StRendererVulkanImage {
 	/// Properties of this vulkan image.
 	/// @note This is mostly just used to recreate an image.
 	StRendererVulkanImageOptions options;
+
+	/// Size of the image in bytes.
+	usize size;
 } StRendererVulkanImage;
 
 /// This manages the vulkan images actually shown to the screen.

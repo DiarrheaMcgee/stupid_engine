@@ -4,7 +4,7 @@
 
 #include "stupid/common.h"
 
-/// Size of the sinwave lookup table.
+/// Size of the sinewave lookup table.
 #define STUPID_LOOKUP_SINEWAVE_SIZE 32768
 
 /// Sinewave lookup table.

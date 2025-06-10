@@ -26,7 +26,6 @@ void stRendererVulkanSwapchainDestroy(StRendererVulkanBackend *pBackend, StRende
  * @param width New swapchain width.
  * @param height New swapchain height.
  */
-//bool stRendererVulkanSwapchainRecreate(StRendererVulkanBackend *pBackend, StRendererVulkanSwapchain *pSwapchain, StRendererVulkanSurface *pSurface, const u32 width, const u32 height);
 bool stRendererVulkanSwapchainRecreate(StRendererVulkanBackend *pBackend, const u32 width, const u32 height, StRendererVulkanSwapchain *pSwapchain);
 
 /**

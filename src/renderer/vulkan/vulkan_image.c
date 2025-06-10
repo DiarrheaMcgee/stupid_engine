@@ -7,6 +7,7 @@
 #include "stupid/common.h"
 #include "stupid/logger.h"
 #include "stupid/memory.h"
+#include <vulkan/vulkan_core.h>
 
 void stRendererVulkanImageConvert(VkCommandBuffer command_buffer, const VkImageLayout new_layout,  StRendererVulkanImage *pImage)
 {
@@ -125,7 +126,7 @@ void stRendererVulkanImageCreate(const StRendererVulkanBackend *pBackend, StRend
 	image_info.extent.width  = pImage->options.width;
 	image_info.extent.height = pImage->options.height;
 	image_info.extent.depth  = 1;
-	image_info.mipLevels	 = 4;
+	image_info.mipLevels	 = 1;
 	image_info.arrayLayers	 = 1;
 	image_info.format	 = pImage->options.format;
 	image_info.tiling	 = VK_IMAGE_TILING_OPTIMAL;
@@ -142,6 +143,7 @@ void stRendererVulkanImageCreate(const StRendererVulkanBackend *pBackend, StRend
 	VkMemoryAllocateInfo allocate_info = {0};
 	VkMemoryRequirements memory_requirements = {0};
 	vkGetImageMemoryRequirements(pBackend->device.logical_device, pImage->handle, &memory_requirements);
+	pImage->size = memory_requirements.size;
 
 	const i32 memory_type = stRendererVulkanMemoryGetIndex(pBackend, memory_requirements.memoryTypeBits, pImage->options.memory_flags);
 
@@ -158,26 +160,14 @@ void stRendererVulkanImageCreate(const StRendererVulkanBackend *pBackend, StRend
 	
 	if (pImage->options.view) {
 		VkImageViewCreateInfo view_info = {0};
-		view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		view_info.image = pImage->handle;
+		view_info.sType  = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		view_info.image  = pImage->handle;
 		view_info.format = pImage->options.format;
 		view_info.subresourceRange.aspectMask = pImage->options.aspect_flags;
 		view_info.subresourceRange.levelCount = 1;
 		view_info.subresourceRange.layerCount = 1;
-		switch (pImage->options.type) {
-		case VK_IMAGE_TYPE_1D:
-			view_info.viewType = VK_IMAGE_VIEW_TYPE_1D;
-			break;
-		case VK_IMAGE_TYPE_2D:
-			view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			break;
-		case VK_IMAGE_TYPE_3D:
-			view_info.viewType = VK_IMAGE_VIEW_TYPE_3D;
-			break;
-		default:
-			view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		}
-		view_info.format = pImage->options.format;
+		view_info.viewType = pImage->options.view_type;
+		view_info.format   = pImage->options.format;
 		view_info.subresourceRange.aspectMask = pImage->options.aspect_flags;
 		view_info.subresourceRange.levelCount = 1;
 		view_info.subresourceRange.layerCount = 1;
@@ -186,26 +176,13 @@ void stRendererVulkanImageCreate(const StRendererVulkanBackend *pBackend, StRend
 	}
 }
 
-void stRendererVulkanImageDestroy(const StRendererVulkanBackend *pBackend, StRendererVulkanImage *pImage)
+bool stRendererVulkanImageBlit(StRendererVulkanBackend *pBackend, VkCommandBuffer cmd, i32 x, i32 y, u32 w, u32 h, const StRendererVulkanImage *pImage, StRendererVulkanImage *pOutput)
 {
 	STUPID_NC(pBackend);
 	STUPID_NC(pBackend->device.logical_device);
 	STUPID_NC(pImage);
-	if (pImage->view != VK_NULL_HANDLE)
-		vkDestroyImageView(pBackend->device.logical_device, pImage->view, pBackend->pAllocator);
-	vkDestroyImage(pBackend->device.logical_device, pImage->handle, pBackend->pAllocator);
-	vkFreeMemory(pBackend->device.logical_device, pImage->memory, pBackend->pAllocator);
-}
+	STUPID_NC(pOutput);
 
-void stRendererVulkanImageRecreate(const StRendererVulkanBackend *pBackend, StRendererVulkanImage *pImage)
-{
-	STUPID_NC(pImage);
-	stRendererVulkanImageDestroy(pBackend, pImage);
-	stRendererVulkanImageCreate(pBackend, pImage);
-}
-
-bool stRendererVulkanImageBlit(StRendererVulkanBackend *pBackend, VkCommandBuffer cmd, i32 x, i32 y, u32 w, u32 h, const StRendererVulkanImage *pImage, StRendererVulkanImage *pOutput)
-{
 	VkImageBlit region = {0};
 	region.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	region.srcSubresource.layerCount = 1;
@@ -259,5 +236,39 @@ bool stRendererVulkanImageBlit(StRendererVulkanBackend *pBackend, VkCommandBuffe
 
 	vkCmdBlitImage(cmd, pImage->handle, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, pOutput->handle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region, VK_FILTER_LINEAR);
 	return true;
+}
+
+void stRendererVulkanImageClear(VkCommandBuffer cmd, const StColor color, StRendererVulkanImage *pImage)
+{
+        VkClearColorValue clear_color_value = {0};
+        clear_color_value.float32[0] = color.r;
+        clear_color_value.float32[1] = color.g;
+        clear_color_value.float32[2] = color.b;
+        clear_color_value.float32[3] = color.a;
+
+        VkImageSubresourceRange subresource_range = {0};
+        subresource_range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        subresource_range.baseMipLevel = 0;
+        subresource_range.levelCount = 1;
+        subresource_range.baseArrayLayer = 0;
+        subresource_range.layerCount = 1;
+
+	const VkImageLayout old_layout = pImage->layout;
+
+	if (old_layout != VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+		stRendererVulkanImageConvert(cmd, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, pImage);
+
+	const VkImageLayout new_layout = pImage->layout;
+
+        vkCmdClearColorImage(cmd,
+	                     pImage->handle,
+	                     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+	                     &clear_color_value,
+	                     1,
+	                     &subresource_range);
+
+	if (old_layout != new_layout && old_layout != VK_IMAGE_LAYOUT_UNDEFINED)
+		stRendererVulkanImageConvert(cmd, old_layout, pImage);
+
 }
 

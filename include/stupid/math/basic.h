@@ -4,8 +4,6 @@
 #include "stupid/common.h"
 #include "stupid/math/constants.h"
 
-// clang-format off
-
 /**
  * Checks if an f64 is signed.
  * @param x A number.

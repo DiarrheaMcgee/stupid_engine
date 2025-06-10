@@ -3,7 +3,6 @@
 #pragma once
 
 #include "stupid/common.h"
-#include "stupid/math/basic.h"
 #include "stupid/math/sin.h"
 #include "stupid/math/exp.h"
 
@@ -64,25 +63,6 @@ typedef union StQuat {
 #define STVEC2(x, y) ((StVec2){{(x), (y)}})
 #define STVEC3(x, y, z) ((StVec3){{(x), (y), (z)}})
 #define STVEC4(x, y, z, w) ((StVec4){{(x), (y), (z), (w)}})
-
-/// 4D f32 vector.
-//typedef f32 StVec4[4];
-//
-///// 3D f32 vector.
-///// @note Contains 4 elements instead of 3 to make more vectorization possible.
-//typedef f32 StVec3[4];
-//
-///// 2D f32 vector.
-//typedef f32 StVec2[2];
-//
-///// 4x4 f32 matrix.
-//typedef f32 StMat4[4][4];
-//
-///// 3x3 f32 matrix.
-//typedef f32 StMat3[3][3];
-//
-///// 2x2 f32 matrix.
-//typedef f32 StMat2[2][2];
 
 /**
  * Returns a zerofilled StVec4.
@@ -1417,22 +1397,4 @@ static STUPID_INLINE StVec3 stVec3MulQuat(const StVec3 vec, const StQuat quat)
 	res = stVec3Add(vec, stVec3Add(stVec3Scale(res, quat.w), stVec3Cross(quat.v, res)));
 	return res;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

@@ -110,22 +110,8 @@ bool stRendererVulkanSwapchainCreate(StRendererVulkanBackend *pBackend, VkSurfac
 	VkImage tmp[4] = {0};
 	VK_CHECK(vkGetSwapchainImagesKHR(pBackend->device.logical_device, pSwapchain->handle, &pSwapchain->image_count, tmp));
 
-	for (int i = 0; i < pSwapchain->image_count; i++) {
-		VkImageViewCreateInfo view_info = {0};
-		view_info.sType                       = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		view_info.image                       = tmp[i];
-		view_info.viewType                    = VK_IMAGE_VIEW_TYPE_2D; // image view type (dont change unless using stereoscopic 3D)
-		view_info.format                      = pSwapchain->image_format.format;
-		view_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		view_info.subresourceRange.levelCount = 1; // the number of levels to use in mip mapping (left at 1 for now)
-		view_info.subresourceRange.layerCount = 1; // the number of image array levels to use (should be left at 1 unless using stereoscopic 3D)
-
-		// make sure the swapchain isnt in use right now
-		vkDeviceWaitIdle(pBackend->device.logical_device);
-		VK_CHECK(vkCreateImageView(pBackend->device.logical_device, &view_info, pBackend->pAllocator, &pSwapchain->pImages[i].view));
-
-		stRendererVulkanImageCreateSwapchain(tmp[i], pSwapchain->pImages[i].view, width, height, pSwapchain->image_format.format, &pSwapchain->pImages[i]);
-	}
+	for (int i = 0; i < pSwapchain->image_count; i++)
+		stRendererVulkanImageCreateSwapchain(pBackend, tmp[i], width, height, pSwapchain->image_format.format, &pSwapchain->pImages[i]);
 
 	// try to get a valid vulkan depth format
 	if (!stRendererVulkanDeviceGetDepthFormat(&pBackend->device)) {
@@ -243,22 +229,8 @@ bool stRendererVulkanSwapchainRecreate(StRendererVulkanBackend *pBackend, const 
 
 	pSwapchain->current_frame = 0;
 
-	for (int i = 0; i < pSwapchain->image_count; i++) {
-		VkImageViewCreateInfo view_info = {0};
-		view_info.sType	                      = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		view_info.image	                      = tmp[i];
-		view_info.viewType                    = VK_IMAGE_VIEW_TYPE_2D; // image view type (dont change unless using stereoscopic 3D aka VR)
-		view_info.format                      = pSwapchain->image_format.format;
-		view_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		view_info.subresourceRange.levelCount = 1; // the number of levels to use in mip mapping (left at 1 for now)
-		view_info.subresourceRange.layerCount = 1; // the number of image array levels to use (should be left at 1 unless using stereoscopic 3D aka VR)
-
-		// make sure the swapchain isnt in use right now
-		vkDeviceWaitIdle(pBackend->device.logical_device);
-		VK_CHECK(vkCreateImageView(pBackend->device.logical_device, &view_info, pBackend->pAllocator, &pSwapchain->pImages[i].view));
-
-		stRendererVulkanImageCreateSwapchain(tmp[i], pSwapchain->pImages[i].view, width, height, pSwapchain->image_format.format, &pSwapchain->pImages[i]);
-	}
+	for (int i = 0; i < pSwapchain->image_count; i++)
+		stRendererVulkanImageCreateSwapchain(pBackend, tmp[i], width, height, pSwapchain->image_format.format, &pSwapchain->pImages[i]);
 
 	stRendererVulkanImageDestroy(pBackend, &pSwapchain->depth_attachment);
 	stRendererVulkanImageCreateDepth(pBackend, true, pSwapchain->swapchain_width, pSwapchain->swapchain_height, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &pSwapchain->depth_attachment);
