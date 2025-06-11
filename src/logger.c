@@ -171,7 +171,7 @@ int stLogCustom(const st_text_color color, const st_text_background_color backgr
 /// strings at the start of different log levels
 static const char *log_level_strings[] = {
 	"\033[35;1;4;107m[CRIT]:   ",
-	"\033[93;1;41m[FATAL]:	\033[0;93;41;4m",
+	"\033[93;1;41m[FATAL]:   \033[0;93;41;4m",
 	"\033[91;1m[ERROR]:  \033[0;31m",
 	"\033[33;1m[WARN]:   \033[0;33;3m",
 	"\033[96;1m[SYSTEM]: \033[0;96;3m",
