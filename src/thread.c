@@ -57,7 +57,7 @@ static void *THREAD(void *_pThread)
 		pThread->is_in_job = true;
 
 		// execute the next job
-		job.pfn(job.pArg);
+		job.pfn(&job.arg);
 		stFenceSignal(&job.finished);
 		pThread->is_in_job = false;
 	}
@@ -105,7 +105,8 @@ void (stThreadAddPFN)(StThread *pThread, StThreadArg *pArg, const StPFN_thread p
 
 	StThreadJob job = {0};
 	job.pfn = pfn;
-	job.pArg = pArg;
+	if (pArg != NULL)
+		job.arg = *pArg;
 	stFenceReset(&job.finished);
 	stMemAppend(pThread->pJobs, job);
 

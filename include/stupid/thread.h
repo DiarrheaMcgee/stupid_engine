@@ -203,8 +203,8 @@ typedef struct StThreadJob {
         /// Function pointer.
         StPFN_thread pfn;
 
-        /// Pointer to the argument passed to this function.
-        StThreadArg *pArg;
+        /// Argument passed to this function.
+        StThreadArg arg;
 
 	/// Signaled when the job is done.
 	StFence finished;
