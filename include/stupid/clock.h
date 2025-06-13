@@ -40,7 +40,7 @@ typedef struct STUPID_A8 StClock {
  */
 static STUPID_INLINE f64 stGetTime(void)
 {
-        struct timespec now;
+        struct timespec now = {0};
         clock_gettime(CLOCK_MONOTONIC_RAW, &now);
         return (f64)now.tv_sec + STUPID_NS_TO_SEC((f64)now.tv_nsec);
 }

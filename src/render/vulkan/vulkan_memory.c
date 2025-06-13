@@ -2,6 +2,7 @@
 #include "stupid/render/vulkan/vulkan_command_buffer.h"
 
 #include "stupid/memory.h"
+#include "stupid/assert.h"
 
 i32 stRendererVulkanMemoryGetIndex(const StRendererVulkanBackend *pBackend, const u32 type_filter, const u32 property_flags)
 {

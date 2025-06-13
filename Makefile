@@ -92,6 +92,6 @@ release: $(BUILDDIR)/stupid_test
 
 .PHONY: clean
 clean:
-	rm -rf $(BUILDDIR)
-	test -f assets/shaders/*.spv && rm assets/shaders/*.spv || exit 0
+	-rm -rf $(BUILDDIR)
+	-rm assets/shaders/*.spv
 
