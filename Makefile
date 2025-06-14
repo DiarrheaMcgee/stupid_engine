@@ -5,7 +5,7 @@ NASMFLAGS = -felf64 -gdwarf
 LIBS = -lvulkan -lXrandr -lX11
 SUFFIXES += .d
 INCLUDE = -I./dependencies/fast_obj -I./dependencies/RGFW -I./include
-DEFAULT_CFLAGS = -MMD -D_POSIX_C_SOURCE=200809L -fPIC -ggdb3 -O3 -ansi -std=c11 -Wall -Werror -mavx -mavx2 -msse -msse2 -msse4.1
+DEFAULT_CFLAGS = -fno-omit-frame-pointer -MMD -D_POSIX_C_SOURCE=200809L -fPIC -ggdb3 -O3 -ansi -std=c11 -Wall -Werror -mavx -mavx2 -msse -msse2 -msse4.1
 VPATH = src:src/asm:src/render:src/render/vulkan:test
 CSRC = \
 	src/core/engine.c\

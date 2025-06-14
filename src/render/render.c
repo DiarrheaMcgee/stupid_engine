@@ -179,7 +179,6 @@ void (stRendererAllocate)(StRenderer *pRenderer, const usize size, const st_rend
 	stMemset(pBuffer, 0, sizeof(StRendererBuffer));
 
 	STUPID_ASSERT(size >= 8, "creating a vram allocation that small is just a waste of everybodys time");
-	//STUPID_ASSERT(type >= 0 && type < ST_RENDERER_BUFFER_TYPE_MAX, "invalid buffer type");
 	STUPID_ASSERT(!(flags & ST_RENDERER_BUFFER_USAGE_CPU_ACCESS_SLOW && flags & ST_RENDERER_BUFFER_USAGE_CPU_ACCESS_FAST), "cant enable slow cpu access and fast cpu access at the same time");
 
 	void *address = NULL;
@@ -582,11 +581,10 @@ bool stRendererLoadObject(StRenderer *pRenderer, const char *path, StObject *pOb
 	fastObjMesh *mesh = fast_obj_read(path);
 	STUPID_NC(mesh);
 
-	StRendererBuffer staging_buffer;
-	StRendererBuffer staging_index_buffer;
+	StRendererBuffer staging_buffer = {0};
+	StRendererBuffer staging_index_buffer = {0};
 
-	usize size = (mesh->position_count + mesh->normal_count) * sizeof(StVec3) + mesh->texcoord_count * sizeof(
-		             StVec2);
+	usize size = (mesh->position_count + mesh->normal_count) * sizeof(StVec3) + mesh->texcoord_count * sizeof(StVec2);
 	usize index_size = mesh->index_count * sizeof(u32) * 3;
 
 	stRendererAllocate(pRenderer, size,
@@ -658,8 +656,7 @@ bool stRendererDrawObjects(StRenderer *pRenderer, const usize count, StObject *p
 	StRendererValues *rvals = getRvals(pRenderer);
 
 	StMat4 view = stMat4LookAt(rvals->camera.pos, rvals->camera.target, rvals->camera.up);
-	StMat4 proj = stMat4Perspective(rvals->camera.fov, (f32)rvals->width / (f32)rvals->height, rvals->camera.near,
-	                                rvals->camera.far);
+	StMat4 proj = stMat4Perspective(rvals->camera.fov, (f32)rvals->width / (f32)rvals->height, rvals->camera.near, rvals->camera.far);
 
 	const StMat4 view_projection = stMat4Mul(proj, view);
 

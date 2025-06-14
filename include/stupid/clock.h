@@ -37,8 +37,9 @@ typedef struct STUPID_A8 StClock {
 /**
  * Gets the current time in seconds.
  * @return The absolute time in seconds.
+ * @note Latency is probably around 250NS.
  */
-static STUPID_INLINE f64 stGetTime(void)
+static STUPID_UNUSED STUPID_NOINLINE f64 stGetTime(void)
 {
         struct timespec now = {0};
         clock_gettime(CLOCK_MONOTONIC_RAW, &now);
@@ -60,15 +61,18 @@ static STUPID_INLINE u64 stGetClockResolution(void)
 /**
  * Sleeps for a specified number of milliseconds.
  * @param ms Number of milliseconds to sleep for.
+ * @note Not inline to reduce executable size.
  */
-static STUPID_INLINE void stSleep(const u64 ms)
+static STUPID_UNUSED STUPID_NOINLINE void stSleep(const u64 ms)
 {
 	if (ms == 0) return;
 
-        struct timespec ts = {0};
+	// for some reason longjmp breaks this unless its static
+	// TODO: figure out why
+        static struct timespec ts = {0};
 
-        ts.tv_sec  = STUPID_MS_TO_SEC(ms);
-        ts.tv_nsec = STUPID_MS_TO_NS(ms % 1000);
+	ts.tv_sec = ms / 1000;
+	ts.tv_nsec = (ms % 1000) * 1000;
 
         nanosleep(&ts, NULL);
 }
@@ -76,15 +80,18 @@ static STUPID_INLINE void stSleep(const u64 ms)
 /**
  * Sleeps for a specified number of microseconds.
  * @param us Number of microseconds to sleep for.
+ * @note Not inline to reduce executable size.
  */
-static STUPID_INLINE void stSleepu(const u64 us)
+static STUPID_UNUSED STUPID_NOINLINE void stSleepu(const u64 us)
 {
 	if (us == 0) return;
 
-        struct timespec ts = {0};
+	// for some reason longjmp breaks this unless its static
+	// TODO: figure out why
+        static struct timespec ts = {0};
 
-        ts.tv_sec  = STUPID_US_TO_SEC(us);
-        ts.tv_nsec = STUPID_US_TO_NS(us % (1000 * 1000));
+	ts.tv_sec = us / (1000 * 1000);
+	ts.tv_nsec = (us % (1000 * 1000)) * 1000;
 
         nanosleep(&ts, NULL);
 }

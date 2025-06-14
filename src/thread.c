@@ -4,148 +4,87 @@
 #include "stupid/assert.h"
 
 #include <pthread.h>
+#include <setjmp.h>
 #include <signal.h>
+#include <stddef.h>
 #include <threads.h>
 
-/**
- * Each thread runs this function, which just manages the thread's job queue.
- * @param _pThread Pointer to the thread running this function.
- * @return This doesnt actually return anything, but pthread_create() expects it to return a (void *).
- * @note _pThread is a (void *) instead of a (Thread *) because pthread_create() requires a (void *) argument.
- * @see stThreadStart
- */
+static u64 thread_wait_times[ST_THREAD_PRIORITY_MAX] = {
+	1, 2, 5, 20
+};
+
+static u64 thread_paused_wait_times[ST_THREAD_PRIORITY_MAX] = {
+	5, 12, 20, 40
+};
+
 static void *THREAD(void *_pThread)
 {
+	StThread *pThread = _pThread;
 	STUPID_THREAD_COUNT++;
 	STUPID_THREAD_ID = STUPID_THREAD_COUNT;
-
-	// this is just to avoid casting it each time
-	StThread *pThread = (StThread *)_pThread;
 	pThread->id = STUPID_THREAD_ID;
-	pThread->is_running = true;
 
-	// keep executing the next job as long as there is one
-	while (stMemLength(pThread->pJobs)) {
-		// exit if requested
-		if (pThread->exit_requested)
-			goto thread_exit;
+	stClockStart(&pThread->work_timer);
 
-		stMutexLock(&pThread->lock);
-		StThreadJob job = {0};
-		stMemRemove(pThread->pJobs, 0, &job);
-		STUPID_NC(job.pfn);
-		stMutexUnlock(&pThread->lock);
+	setjmp(pThread->loop);
 
-		// pause if requested
-		if (pThread->pause_requested) {
-			STUPID_LOG_TRACE("thread %lu paused", STUPID_THREAD_ID);
+	if (pThread->is_in_job)
+		pThread->time_worked += stGetClockElapsed(&pThread->work_timer);
+
+	pThread->is_in_job = false;
+
+	while (true) {
+		if (STUPID_UNLIKELY(pThread->pause_requested)) {
+			STUPID_LOG_TRACE("thread %zu paused", STUPID_THREAD_ID);
+			stClockUpdate(&pThread->clock);
 			pThread->is_paused = true;
 
-			// wait as long as the thread is paused
-			while (pThread->pause_requested) {
-				stSleepu(100);
-				if (pThread->exit_requested)
-					goto thread_exit;
+			while (STUPID_LIKELY(pThread->pause_requested)) {
+				if (STUPID_UNLIKELY(pThread->exit_requested)) {
+					STUPID_LOG_TRACE("thread %zu exiting (worked for %lf and lived for %lf)", STUPID_THREAD_ID, pThread->time_worked, pThread->clock.lifetime);
+					pThread->is_running = false;
+					pthread_exit(NULL);
+				}
+
+				stSleepu(thread_paused_wait_times[pThread->priority]);
 			}
 
-			if (pThread->exit_requested)
-				goto thread_exit;
+			pThread->is_paused = false;
+			STUPID_LOG_TRACE("thread %zu unpaused after %lf", STUPID_THREAD_ID, stGetClockElapsed(&pThread->clock));
 		}
 
+		if (STUPID_UNLIKELY(pThread->exit_requested)) {
+			STUPID_LOG_TRACE("thread %zu exiting (worked for %lf and lived for %lf)", STUPID_THREAD_ID, pThread->time_worked, pThread->clock.lifetime);
+			pthread_exit(NULL);
+		}
+
+		if (stMemLength(pThread->pJobs) > 0) {
+			stMutexLock(&pThread->lock);
+			pThread->is_in_job = true;
+			StThreadJob job = {0};
+			stMemRemove(pThread->pJobs, 0, &job);
+			stMutexUnlock(&pThread->lock);
+			stClockUpdate(&pThread->work_timer);
+			longjmp(job.jmp, -1);
+		}
+
+		stSleepu(thread_wait_times[pThread->priority]);
 		stClockUpdate(&pThread->clock);
-
-		pThread->is_in_job = true;
-
-		// execute the next job
-		job.pfn(&job.arg);
-		stFenceSignal(&job.finished);
-		pThread->is_in_job = false;
 	}
-
-	// OH NO ITS A GOTO STATEMENT
-thread_exit:
-	stMutexLock(&pThread->lock);
-	pThread->is_in_job       = false;
-	pThread->pause_requested = false;
-	pThread->is_paused       = false;
-	pThread->is_running      = false;
-
-	if (pThread->exit_requested)
-		STUPID_LOG_TRACE("thread %lu exited", STUPID_THREAD_ID);
-	else
-		STUPID_LOG_TRACE("thread %lu finished", STUPID_THREAD_ID);
-
-	pThread->exit_requested = false;
-	stMutexUnlock(&pThread->lock);
-
-	// this is supposedly better than return at cleaning up thread stuff
-	pthread_exit(NULL);
 }
 
-StThread *stThreadCreate(void)
+StThread *(stThreadCreate)(st_thread_priority priority STUPID_DBG_PROTO_PARAMS)
 {
-	StThread *pThread  = stMemAlloc(StThread, 1);
-	pThread->pHandle   = stMemAllocNL(pthread_t, 1);
-	pThread->pJobs     = stMemAllocNL(StThreadJob, 16);
-	pThread->is_joined = true;
-	STUPID_LOG_TRACE("thread %lu created", pThread->id);
+	StThread *pThread   = stMemAlloc(StThread, 1);
+	pThread->pHandle    = stMemAllocNL(pthread_t, 1);
+	pThread->pJobs      = stMemAllocNL(StThreadJob, 16);
+	pThread->is_running = true;
+	STUPID_LOG_TRACEFN("thread %lu created with priority %u", pThread->id, priority);
 
 	stClockStart(&pThread->clock);
-
-	return pThread;
-}
-
-void (stThreadAddPFN)(StThread *pThread, StThreadArg *pArg, const StPFN_thread pfn, const char *job_name STUPID_DBG_PROTO_PARAMS)
-{
-	STUPID_NC(pThread);
-	STUPID_NC(pfn);
-	STUPID_NC(job_name);
-
-	stMutexLock(&pThread->lock);
-
-	StThreadJob job = {0};
-	job.pfn = pfn;
-	if (pArg != NULL)
-		job.arg = *pArg;
-	stFenceReset(&job.finished);
-	stMemAppend(pThread->pJobs, job);
-
-	stMutexUnlock(&pThread->lock);
-
-	STUPID_LOG_TRACEFN("job %p '%s' added to thread %lu job queue", pfn, job_name, pThread->id);
-}
-
-bool (stThreadStart)(StThread *pThread STUPID_DBG_PROTO_PARAMS)
-{
-	STUPID_NC(pThread);
-
-	stMutexLock(&pThread->lock);
-
-	// exit if there are no jobs to execute
-	if (stMemLength(pThread->pJobs) == 0) {
-		STUPID_LOG_ERROR("stThreadStart(): thread %lu has no jobs", pThread->id);
-		stMutexUnlock(&pThread->lock);
-		return false;
-	}
-
-	// exit of the thread is already started
-	if (pThread->is_running) {
-		STUPID_LOG_ERROR("stThreadStart(): thread %lu is already started", pThread->id);
-		stMutexUnlock(&pThread->lock);
-		return false;
-	}
-
-	pThread->is_in_job  = false;
-	pThread->is_joined  = false;
-	pThread->is_running = true;
-	stMutexUnlock(&pThread->lock);
-
-	// try to start the thread
 	STUPID_ASSERT(pthread_create(pThread->pHandle, NULL, THREAD, pThread) == 0, "failed to create pthread");
 
-	STUPID_LOG_TRACEFN("thread %lu started", pThread->id);
-
-	return true;
+	return pThread;
 }
 
 void (stThreadDestroy)(StThread *pThread STUPID_DBG_PROTO_PARAMS)
@@ -165,22 +104,20 @@ bool (stThreadJoin)(StThread *pThread, const u64 timeout STUPID_DBG_PROTO_PARAMS
 	STUPID_NC(pThread);
 	STUPID_NC(pThread->pHandle);
 
-	if (pThread->is_joined) {
+	if (!pThread->is_running) {
 		STUPID_LOG_WARN("stThreadJoin(): thread %lu already joined", pThread->id);
 		return true;
 	}
 
-	if (!pThread->is_running) return true;
-
 	stThreadRequestExit(pThread);
-
+	pThread->exit_requested = true;
 	pThread->pause_requested = false;
 	pThread->is_paused = false;
 
 	u64 time_waited = 0;
 
 	// wait for the thread to finish until the timeout has ended
-	while (stThreadIsInJob(pThread)) {
+	while (pThread->is_in_job) {
 		if (time_waited >= timeout) {
 			// go to pthread_join thereby waiting forever if the timeout is 0
 			if (timeout == 0) break;

@@ -123,6 +123,8 @@ bool handleFrameStart(StEngine *pEngine, f32 delta_time)
 	return true;
 }
 
+#include <stupid/thread.h>
+
 int main(void)
 {
 	StEngine engine = {0};
@@ -205,12 +207,11 @@ int main(void)
 
 		STUPID_ASSERT(stEngineBeginFrame(pEngine), "failed to start frame");
 
+		StObject objects[] = {monkey, cube, sponza};
 		stRendererSetObjectRotation(pEngine->pState->pRenderer, &cube, STVEC3(stGetTime(), 0.0, 0.0));
 		stRendererSetObjectTranslation(pEngine->pState->pRenderer, &cube, STVEC3(stCos(stGetTime()) * 2.0, stSin(stGetTime()) * 2.0 + 3.0, 0.0));
-
 		stRendererSetObjectRotation(pEngine->pState->pRenderer, &monkey, STVEC3(0.0, stGetTime() * 0.6, 0.5));
 
-		StObject objects[] = {monkey, cube, sponza};
 		stRendererDrawObjects(pEngine->pState->pRenderer, 3, objects);
 
 		STUPID_ASSERT(stEngineEndFrame(pEngine), "failed to finish frame");
