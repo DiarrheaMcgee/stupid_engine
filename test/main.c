@@ -1,5 +1,4 @@
 #include <stupid/clock.h>
-#include <stupid/thread.h>
 #include <stupid/engine.h>
 #include <stupid/logger.h>
 #include <stupid/window.h>

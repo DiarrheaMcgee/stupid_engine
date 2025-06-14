@@ -41,7 +41,7 @@ static void *THREAD(void *_pThread)
 
 			while (STUPID_LIKELY(pThread->pause_requested)) {
 				if (STUPID_UNLIKELY(pThread->exit_requested)) {
-					STUPID_LOG_TRACE("thread %zu exiting (worked for %lf and lived for %lf)", STUPID_THREAD_ID, pThread->time_worked, pThread->clock.lifetime);
+					STUPID_LOG_TRACE("thread %zu exiting (idiot index %lf)", STUPID_THREAD_ID, pThread->clock.lifetime / pThread->time_worked);
 					pThread->is_running = false;
 					pthread_exit(NULL);
 				}
@@ -54,7 +54,7 @@ static void *THREAD(void *_pThread)
 		}
 
 		if (STUPID_UNLIKELY(pThread->exit_requested)) {
-			STUPID_LOG_TRACE("thread %zu exiting (worked for %lf and lived for %lf)", STUPID_THREAD_ID, pThread->time_worked, pThread->clock.lifetime);
+			STUPID_LOG_TRACE("thread %zu exiting (idiot index %lf)", STUPID_THREAD_ID, pThread->clock.lifetime / pThread->time_worked);
 			pthread_exit(NULL);
 		}
 
@@ -75,7 +75,7 @@ static void *THREAD(void *_pThread)
 
 StThread *(stThreadCreate)(st_thread_priority priority STUPID_DBG_PROTO_PARAMS)
 {
-	StThread *pThread   = stMemAlloc(StThread, 1);
+	StThread *pThread   = stMemAllocNL(StThread, 1);
 	pThread->pHandle    = stMemAllocNL(pthread_t, 1);
 	pThread->pJobs      = stMemAllocNL(StThreadJob, 16);
 	pThread->is_running = true;
@@ -87,32 +87,14 @@ StThread *(stThreadCreate)(st_thread_priority priority STUPID_DBG_PROTO_PARAMS)
 	return pThread;
 }
 
-void (stThreadDestroy)(StThread *pThread STUPID_DBG_PROTO_PARAMS)
-{
-	STUPID_NC(pThread);
-
-	stMemDeallocNL(pThread->pHandle);
-	stMemDeallocNL(pThread->pJobs);
-
-	STUPID_LOG_TRACEFN("thread %lu destroyed", pThread->id);
-
-	stMemDealloc(pThread);
-}
-
-bool (stThreadJoin)(StThread *pThread, const u64 timeout STUPID_DBG_PROTO_PARAMS)
+bool (stThreadDestroy)(StThread *pThread, const u64 timeout STUPID_DBG_PROTO_PARAMS)
 {
 	STUPID_NC(pThread);
 	STUPID_NC(pThread->pHandle);
 
-	if (!pThread->is_running) {
-		STUPID_LOG_WARN("stThreadJoin(): thread %lu already joined", pThread->id);
-		return true;
-	}
-
 	stThreadRequestExit(pThread);
 	pThread->exit_requested = true;
 	pThread->pause_requested = false;
-	pThread->is_paused = false;
 
 	u64 time_waited = 0;
 
@@ -124,13 +106,16 @@ bool (stThreadJoin)(StThread *pThread, const u64 timeout STUPID_DBG_PROTO_PARAMS
 
 			// otherwise kill the thread
 			if (pthread_cancel(*((pthread_t *)pThread->pHandle)) != 0) {
-				STUPID_LOG_CRITICAL("failed to cancel thread %p resorting to violence (SIGKILL)", pThread);
+				STUPID_LOG_CRITICAL("failed to cancel thread %lu resorting to violence (SIGKILL)", pThread->id);
 				stSleep(100);
 				pthread_kill(*(pthread_t *)pThread->pHandle, SIGKILL);
 			}
 
-			pThread->is_running = false;
 			STUPID_LOG_ERROR("thread %lu forcibly closed since it didnt finish before the timeout %lu", pThread->id, timeout);
+
+			stMemDeallocNL(pThread->pHandle);
+			stMemDeallocNL(pThread->pJobs);
+
 			return false;
 		}
 		stSleep(1);
@@ -139,8 +124,14 @@ bool (stThreadJoin)(StThread *pThread, const u64 timeout STUPID_DBG_PROTO_PARAMS
 
 	// rejoin the thread
 	pthread_join(*((pthread_t *)pThread->pHandle), NULL);
-	pThread->is_running = false;
-	STUPID_LOG_TRACEFN("thread %lu joined", pThread->id);
+
+	stMemDeallocNL(pThread->pHandle);
+	stMemDeallocNL(pThread->pJobs);
+
+	STUPID_LOG_TRACEFN("thread %lu destroyed", pThread->id);
+
+	stMemDeallocNL(pThread);
+
 	return true;
 }
 

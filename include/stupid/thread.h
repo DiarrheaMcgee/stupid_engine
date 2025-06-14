@@ -197,7 +197,7 @@ typedef struct StThreadJob {
  * @note Dont create an entire thread for a single short term job (i.e. less than 0.1 seconds before exiting).
  * @see stThreadCreate, stThreadDestroy, StThreadJob
  */
-typedef STUPID_A32 struct StThread {
+typedef STUPID_ALIGN32 struct StThread {
 	/// Custom stack pointer when inside of a job.
 	u8 stack[sizeof(StKb) * 64];
 
@@ -229,7 +229,7 @@ typedef STUPID_A32 struct StThread {
 	jmp_buf loop;
 
 	/// ID for this thread.
-	/// @note This will almost certainly end up being the number of threads when this thread was created.
+	/// @note This will end up being the number of threads when this thread was created.
 	StThreadID id;
 
         /// Whether the thread is currently running or not.
@@ -271,59 +271,31 @@ StThread *(stThreadCreate)(st_thread_priority priority STUPID_DBG_PROTO_PARAMS);
 #define stThreadCreate(priority) (stThreadCreate)(priority STUPID_DBG_PARAMS)
 
 /**
- * Destroys a thread.
+ * Joins and destroys a thread.
  * @param pThread Pointer to a thread.
+ * @param timeout Number of milliseconds to wait before forcibly closing the thread.
  * @note A started thread must be joined before destroying it.
- * @see stThreadCreate, stThreadJoin, StThread.
+ * @see stThreadCreate, StThread.
  */
-void (stThreadDestroy)(StThread *pThread STUPID_DBG_PROTO_PARAMS);
+bool (stThreadDestroy)(StThread *pThread, const u64 timeout STUPID_DBG_PROTO_PARAMS);
 
 /**
- * Destroys a thread.
+ * Joins and destroys a thread.
  * @param pThread Pointer to a thread.
+ * @param timeout Number of milliseconds to wait before forcibly closing the thread.
  * @note A started thread must be joined before destroying it.
- * @see stThreadJoin, StThread.
+ * @see stThreadCreate, StThread.
  */
-#define stThreadDestroy(pThread)   (stThreadDestroy)(pThread STUPID_DBG_PARAMS)
+#define stThreadDestroy(pThread, timeout)   (stThreadDestroy)(pThread, timeout STUPID_DBG_PARAMS)
 
 /**
- * Destroys a thread.
+ * Joins and destroys a thread.
  * @param pThread Pointer to a thread.
+ * @param timeout Number of milliseconds to wait before forcibly closing the thread.
  * @note A started thread must be joined before destroying it.
- * @note Does not print logs.
- * @see stThreadJoin, StThread.
+ * @see stThreadCreate, StThread.
  */
-#define stThreadDestroyNL(pThread) (stThreadDestroy)(pThread STUPID_DBG_PARAMS_NL)
-
-/**
- * Waits for either the thread to finish its job queue, or the
- * timeout to be reached, and then rejoins it with the main thread.
- * @param pThread Pointer to a thread.
- * @param timeout Number of milliseconds to wait before forcing the thread to close.
- * @return True if the thread finished normally, false if the thread had to be closed forcibly.
- * @see stThreadCreate, stThreadRequestExit, stThreadDestroy
- */
-bool (stThreadJoin)(StThread *pThread, const u64 timeout STUPID_DBG_PROTO_PARAMS);
-
-/**
- * Waits for either the thread to finish its job queue or the timeout to be reached, and then rejoins it with the main thread.
- * @param pThread Pointer to a thread.
- * @param timeout Number of milliseconds to wait before forcing the thread to close.
- * @return True if the thread finished normally, false if the thread had to be closed forcibly.
- * @see stThreadCreate, stThreadRequestExit, stThreadDestroy
- */
-#define stThreadJoin(pThread, timeout)   (stThreadJoin)(pThread, timeout STUPID_DBG_PARAMS)
-
-/**
- * Waits for either the thread to finish its job queue or the timeout to be reached, and then rejoins it with the main thread.
- * @param pThread Pointer to a thread.
- * @param timeout Number of milliseconds to wait before forcing the thread to close.
- * @return True if the thread finished normally, false if the thread had to be closed forcibly.
- * @note Dont forcibly close a thread unless you have to.
- * @note Does not print logs.
- * @see stThreadCreate, stThreadRequestExit, stThreadDestroy
- */
-#define stThreadJoinNL(pThread, timeout) (stThreadJoin)(pThread, timeout STUPID_DBG_PARAMS_NL)
+#define stThreadDestroyNL(pThread, timeout) (stThreadDestroy)(pThread, timeout STUPID_DBG_PARAMS_NL)
 
 /**
  * Enables or disables pause for a thread.
@@ -364,7 +336,7 @@ static STUPID_INLINE void (stThreadSetPause)(StThread *pThread, const bool state
  * Makes a thread exit when it is no longer in a function.
  * @param pThread Pointer to a thread.
  * @note The thread must be joined after doing this.
- * @see stThreadJoin, stThreadDestroy
+ * @see stThreadDestroy
  */
 static STUPID_INLINE void (stThreadRequestExit)(StThread *pThread STUPID_DBG_PROTO_PARAMS)
 {
@@ -379,7 +351,7 @@ static STUPID_INLINE void (stThreadRequestExit)(StThread *pThread STUPID_DBG_PRO
  * Makes a thread exit when it is no longer in a function.
  * @param pThread Pointer to a thread.
  * @note The thread must be joined after doing this.
- * @see stThreadJoin, stThreadDestroy
+ * @see stThreadDestroy
  */
 #define stThreadRequestExit(pThread)   (stThreadRequestExit)(pThread STUPID_DBG_PARAMS)
 
@@ -388,7 +360,7 @@ static STUPID_INLINE void (stThreadRequestExit)(StThread *pThread STUPID_DBG_PRO
  * @param pThread Pointer to a thread.
  * @note The thread must be joined after doing this.
  * @note Does not print logs.
- * @see stThreadJoin, stThreadDestroy
+ * @see stThreadDestroy
  */
 #define stThreadRequestExitNL(pThread) (stThreadRequestExit)(pThread STUPID_DBG_PARAMS_NL)
 
@@ -479,6 +451,16 @@ static STUPID_INLINE void stThreadWaitForAllJobs(const StThread *pThread)
 		stSleepu(2);
 }
 
+/**
+ * @brief Starts the definition of a thread job.
+ * The thread runs from STUPID_THREAD_START to STUPID_THREAD_END.
+ * @param pThread Thread to pass the job to.
+ * @param label Unfortunately this is necessary. It doesnt have
+ * to be anything in particular though (as long as the start and end match).
+ * @note I have no idea what nested thread jobs do, and im
+ * not going to test them, so that is officially undefined behavior.
+ * @see STUPID_THREAD_STOP, STUPID_THREAD_JOB
+ */
 #define STUPID_THREAD_START(pThread, label)\
 do {\
 	stMutexLock(&(pThread)->lock);\
@@ -486,14 +468,32 @@ do {\
 	__asm__ __volatile__ ("mov %0, %%rsp" : : "r" ((pThread)->stack + sizeof((pThread)->stack)));\
 } while (0)
 
+/**
+ * @brief Ends the definition of a thread job.
+ * The thread runs from STUPID_THREAD_START to STUPID_THREAD_END.
+ * @param pThread Thread to pass the job to.
+ * @param label Unfortunately this is necessary. It doesnt have
+ * to be anything in particular though (as long as the start and end match).
+ * @note I have no idea what nested thread jobs do, and im
+ * not going to test them, so that is officially undefined behavior.
+ * @see STUPID_THREAD_START, STUPID_THREAD_JOB
+ */
 #define STUPID_THREAD_STOP(pThread, label)\
 do {\
 	longjmp((pThread)->loop, 0);\
 	label:\
+	(pThread)->is_in_job = true;\
 	stMemAppend((pThread)->pJobs, (pThread)->tmp_job);\
 	stMutexUnlock(&(pThread)->lock);\
 } while (0)
 
+/**
+ * @brief Passes a block of code to run on another thread.
+ * This was really hard to implement, and probably has a few bugs.
+ * @param pThread Thread to pass the job to.
+ * @param label Unfortunately this is necessary. It doesnt have to be anything in particular though.
+ * @param job Code block to execute on a separate thread.
+ */
 #define STUPID_THREAD_JOB(pThread, label, job)\
 do {\
 	STUPID_THREAD_START(pThread, label);\
